@@ -1,0 +1,90 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: ms-catalog
+
+  data:
+    mongodb:
+      # Ex.: mongodb://mongo:27017/catalog (docker) | mongodb://localhost:27017/catalog (local)
+      uri: ${MONGO_URI:mongodb://localhost:27017/catalog}
+      auto-index-creation: true
+      uuid-representation: standard
+
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  cache:
+    type: redis
+    redis:
+      # TTL padrão para caches que não tiverem TTL específico no CacheConfig
+      time-to-live: 10m
+      cache-null-values: false
+
+  kafka:
+    # host: 127.0.0.1:9094 ; container: kafka-infra:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:127.0.0.1:9094}
+    admin:
+      auto-create: true
+    consumer:
+      group-id: ms-catalog
+      # auto-offset-reset: latest
+      # Se usar JsonDeserializer:
+      # properties:
+      #   spring.json.trusted.packages: "*"
+
+# mapas de tópicos (mantém prefixo 'catalog.kafka.*')
+catalog:
+  kafka:
+    producer:
+      topic-key: product-changed
+      topics:
+        product-changed:
+          name: ${PRODUCT_CHANGED_TOPIC:catalog.product.changed.v1}
+          partitions: 1
+          replicas: 1
+    consumer:
+      topic-key: product-changed
+      topics:
+        product-changed:
+          name: ${PRODUCT_CHANGED_TOPIC:catalog.product.changed.v1}
+          concurrency: 1
+
+# suporte ao TopicAdminConfig (auto-criar tópico via propriedade simples)
+app:
+  kafka:
+    topics:
+      auto-create: ${TOPIC_AUTO_CREATE:true}
+      product-changed: ${PRODUCT_CHANGED_TOPIC:catalog.product.changed.v1}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    tryItOutEnabled: true
+
+logging:
+  level:
+    org.hibernate.SQL: warn
+    org.springframework.kafka: info
+    org.mongodb.driver: info
+
+# PROFILE: secured  → habilita OAuth2 Resource Server (Keycloak)
+# Ative com:  -Dspring.profiles.active=secured
+---
+spring:
+  config:
+    activate:
+      on-profile: secured
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # use UM dos dois (preferir issuer-uri). Default aponta para KC em 8085.
+          issuer-uri: ${OAUTH2_ISSUER_URI:http://localhost:8085/realms/master}
+          # jwk-set-uri: ${OAUTH2_JWKS_URI:http://localhost:8085/realms/master/protocol/openid-connect/certs}

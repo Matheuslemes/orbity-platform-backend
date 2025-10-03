@@ -1,0 +1,121 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: ms-media
+
+  # --- MongoDB ---
+  data:
+    mongodb:
+      uri: ${MONGO_URI:mongodb://localhost:27017/media}
+      auto-index-creation: true
+      uuid-representation: standard
+
+    # --- Redis (cache e utilidades) ---
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  # --- Multipart (upload limites) ---
+  servlet:
+    multipart:
+      max-file-size: ${MEDIA_MAX_FILE_SIZE:20MB}
+      max-request-size: ${MEDIA_MAX_REQUEST_SIZE:20MB}
+
+  # --- Cache (Redis) ---
+  cache:
+    type: redis
+    redis:
+      time-to-live: 5m
+      cache-null-values: false
+
+  # --- Kafka ---
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:127.0.0.1:9094}
+    admin:
+      auto-create: true
+    consumer:
+      group-id: ${KAFKA_GROUP_ID:ms-media}
+      enable-auto-commit: false
+      # properties:
+      #   spring.json.trusted.packages: "*"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+# mapas de tópicos (mantém prefixo 'catalog.kafka.*' como no projeto)
+catalog:
+  kafka:
+    producer:
+      topic-key: media-events
+      topics:
+        media-events:
+          name: ${MEDIA_EVENTS_TOPIC:media.asset.events.v1}
+          partitions: 1
+          replicas: 1
+    # (opcional) consumidores deste serviço
+    consumer:
+      topic-key: media-commands
+      topics:
+        media-commands:
+          name: ${MEDIA_COMMANDS_TOPIC:media.commands.v1}
+          concurrency: ${MEDIA_COMMANDS_CONCURRENCY:1}
+
+# suporte ao TopicAdminConfig (auto-criar tópicos via propriedade simples)
+app:
+  kafka:
+    topics:
+      auto-create: ${TOPIC_AUTO_CREATE:true}
+      media-events: ${MEDIA_EVENTS_TOPIC:media.asset.events.v1}
+      media-commands: ${MEDIA_COMMANDS_TOPIC:media.commands.v1}
+
+# propriedades específicas do ms-media
+media:
+  storage:
+    # local | minio
+    type: ${MEDIA_STORAGE_TYPE:local}
+    local:
+      base-path: ${MEDIA_BASE_PATH:./.media}
+      public-base-url: ${MEDIA_PUBLIC_BASE_URL:http://localhost:8083/files}
+    minio:
+      endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+      bucket: ${MINIO_BUCKET:media}
+      access-key: ${MINIO_ACCESS_KEY:minioadmin}
+      secret-key: ${MINIO_SECRET_KEY:minioadmin}
+      region: ${MINIO_REGION:us-east-1}
+      secure: ${MINIO_SECURE:false}
+  cache:
+    # TTL curto para metadados/URLs pré-assinadas
+    metadata-ttl: ${MEDIA_METADATA_TTL:300s}
+    url-ttl: ${MEDIA_URL_TTL:300s}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    tryItOutEnabled: true
+
+logging:
+  level:
+    org.springframework.kafka: info
+    org.springframework.data.redis: info
+    org.springframework.data.mongodb: info
+    br.com.catalog.media: info
+
+# PROFILE: secured → habilita OAuth2 Resource Server (Keycloak)
+# Ative com: -Dspring.profiles.active=secured
+---
+spring:
+  config:
+    activate:
+      on-profile: secured
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OAUTH2_ISSUER_URI:http://localhost:8085/realms/master}
+          # jwk-set-uri: ${OAUTH2_JWKS_URI:http://localhost:8085/realms/master/protocol/openid-connect/certs}
