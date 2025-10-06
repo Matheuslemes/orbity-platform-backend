@@ -1,3 +1,92 @@
+server:
+  port: 8084
+
 spring:
   application:
-    name: ms-search-service
+    name: ms-search
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 10m
+      cache-null-values: false
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:127.0.0.1:9094}
+    admin:
+      auto-create: true
+    consumer:
+      group-id: ${KAFKA_GROUP_ID:ms-search}
+      # auto-offset-reset: latest
+      # enable-auto-commit: false
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+# mapas de tópicos (mantém prefixo 'search.kafka.*' para ficar alinhado ao padrão)
+search:
+  kafka:
+    producer:
+      topic-key: product-indexed
+      topics:
+        product-indexed:
+          name: ${PRODUCT_INDEXED_TOPIC:search.product.indexed.v1}
+          partitions: 1
+          replicas: 1
+    consumer:
+      # três consumidores: produto mudou, preço mudou, estoque mudou
+      topics:
+        product-changed:
+          name: ${PRODUCT_CHANGED_TOPIC:catalog.product.changed.v1}
+          concurrency: ${PRODUCT_CHANGED_CONCURRENCY:1}
+        price-changed:
+          name: ${PRICE_CHANGED_TOPIC:pricing.price.changed.v1}
+          concurrency: ${PRICE_CHANGED_CONCURRENCY:1}
+        stock-events:
+          name: ${STOCK_EVENTS_TOPIC:inventory.stock.events.v1}
+          concurrency: ${STOCK_EVENTS_CONCURRENCY:1}
+
+# OpenSearch (client high-level)
+opensearch:
+  host: ${OPENSEARCH_HOST:localhost}
+  port: ${OPENSEARCH_PORT:9200}
+  scheme: ${OPENSEARCH_SCHEME:http}
+  username: ${OPENSEARCH_USERNAME:}
+  password: ${OPENSEARCH_PASSWORD:}
+  index:
+    products: ${OPENSEARCH_PRODUCTS_INDEX:products}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    tryItOutEnabled: true
+
+logging:
+  level:
+    org.springframework.kafka: info
+    org.opensearch.client: info
+    org.springframework.data.redis: info
+    br.com.orbity.ms_search_service: info
+
+# PROFILE: secured → habilita OAuth2 Resource Server (Keycloak, etc.)
+# Ative com: -Dspring.profiles.active=secured
+---
+spring:
+  config:
+    activate:
+      on-profile: secured
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OAUTH2_ISSUER_URI:http://localhost:8085/realms/master}
+          # jwk-set-uri: ${OAUTH2_JWKS_URI:http://localhost:8085/realms/master/protocol/openid-connect/certs}

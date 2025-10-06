@@ -51,8 +51,8 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
-# mapas de tópicos (mantém prefixo 'catalog.kafka.*' como no projeto)
-catalog:
+# mapas de tópicos (mantém prefixo 'orbity.kafka.*' como no projeto)
+orbity:
   kafka:
     producer:
       topic-key: stock-events
@@ -98,7 +98,7 @@ logging:
     org.hibernate.SQL: warn
     org.springframework.kafka: info
     org.springframework.data.redis: info
-    br.com.catalog.ms_inventory_service: info
+    br.com.orbity.ms_inventory_service: info
 
 # PROFILE: secured → habilita OAuth2 Resource Server (Keycloak)
 # Ative com: -Dspring.profiles.active=secured

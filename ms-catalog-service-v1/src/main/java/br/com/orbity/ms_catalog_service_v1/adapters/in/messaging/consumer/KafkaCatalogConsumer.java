@@ -19,8 +19,8 @@ public class KafkaCatalogConsumer {
     private final ObjectMapper mapper;
 
     @KafkaListener(
-            topics = "${catalog.kafka.consumer.topics.product-changed.name}",
-            concurrency = "${catalog.kafka.consumer.topics.product-changed.concurrency:1}"
+            topics = "${orbity.kafka.consumer.topics.product-changed.name}",
+            concurrency = "${orbity.kafka.consumer.topics.product-changed.concurrency:1}"
     )
     public void onProductChanged(ConsumerRecord<String, String> rec,
                                  Acknowledgment ack,

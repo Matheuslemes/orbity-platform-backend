@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Validated
-@ConfigurationProperties(prefix = "catalog.kafka")
+@ConfigurationProperties(prefix = "orbity.kafka")
 public class KafkaProperties {
 
     private Producer producer = new Producer();

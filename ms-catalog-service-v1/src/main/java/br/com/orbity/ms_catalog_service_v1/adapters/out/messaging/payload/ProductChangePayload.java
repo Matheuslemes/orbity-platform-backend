@@ -7,7 +7,7 @@ public record ProductChangePayload(
         String id,
         String sku,
         String name,
-        String descripition,
+        String description,
         String slug,
         Long version,
         String eventId

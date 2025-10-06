@@ -1,4 +1,4 @@
-package br.com.orbity.ms_search_service.adapters.in.messagin.consumer;
+package br.com.orbity.ms_search_service.adapters.in.messaging.consumer;
 
 import br.com.orbity.ms_search_service.domain.model.ProductIndex;
 import br.com.orbity.ms_search_service.domain.port.out.SearchRepositoryPortOut;
@@ -16,38 +16,37 @@ import java.util.UUID;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class KafkaPriceChangedConsumer {
+public class KafkaStockChangedConsumer {
 
     private final ObjectMapper om;
     private final SearchRepositoryPortOut repository;
 
     @KafkaListener(
-            id = "search-price-changed",
+            id = "search-stock-changed",
+            topics = "${orbity.kafka.consumer.topics.stock-changed.name:inventory.stock.events.v1}",
             groupId = "${spring.kafka.consumer.group-id:ms-search}",
-            topics = "${catalog.kafka.consumer.topics.price-changed.name}",
-            concurrency = "${catalog.kafka.consumer.topics.price-changed.concurrency:1}"
+            concurrency = "${orbity.kafka.consumer.topics.stock-changed.concurrency:1}"
     )
-    public void onPriceChanged(ConsumerRecord<String, String> rec, Acknowledgment ack) {
+    public void onStockEvent(ConsumerRecord<String, String> rec, Acknowledgment ack) {
 
         try {
             JsonNode node = om.readTree(rec.value());
-            UUID id = UUID.fromString(node.path("productId").asText());
-            Double price = node.path("newPrice").isNumber() ? node.path("newPrice").asDouble() : null;
+            UUID id = UUID.fromString(node.path("aggregateId").asText());
+            Long available = node.path("availableQty").isNumber() ? node.path("availableQty").asLong() : null;
 
-            log.info("[KafkaPriceChangedConsumer] RX id={} price={} topic={} off={}",
-                    id, price, rec.topic(), rec.offset());
+            log.info("[KafkaStockChangedConsumer] RX id={} available={} topic={} off={}",
+                    id, available, rec.topic(), rec.offset());
 
-            // atualização parcial via adapter (script/partial  update)
             repository.index(repository.findById(id).map(p -> new ProductIndex(
                     p.id(), p.sku(), p.name(), p.description(), p.categories(), p.tags(),
-                    price, p.availableQty(), p.updatedAt()
+                    p.price(), available, p.updatedAt()
             )).orElseThrow());
 
             ack.acknowledge();
 
         } catch (Exception e) {
-            log.error("[KafkaPriceChangedConsumer] FAIL topic={} off={} err={}",
-                    rec.topic(), rec.offset(), e.getMessage());
+            log.error("[KafkaStockChangedConsumer] FAIL topic={} off={} err={}",
+                    rec.topic(), rec.offset(), e.getMessage(), e);
         }
     }
 }

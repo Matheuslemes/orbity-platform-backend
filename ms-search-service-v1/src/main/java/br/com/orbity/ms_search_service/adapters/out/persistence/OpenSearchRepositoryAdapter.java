@@ -5,8 +5,11 @@ import br.com.orbity.ms_search_service.domain.port.out.SearchRepositoryPortOut;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.opensearch.client.opensearch.OpenSearchClient;
+import org.opensearch.client.opensearch._types.OpType;
+import org.opensearch.client.opensearch._types.OpenSearchException;
 import org.opensearch.client.opensearch.core.*;
 import org.opensearch.client.opensearch.core.search.Hit;
+import org.opensearch.client.opensearch.indices.UpdateAliasesRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -138,6 +141,7 @@ public class OpenSearchRepositoryAdapter implements SearchRepositoryPortOut {
     public List<ProductIndex> search(String query, int page, int size) {
 
         if (isBlank(index)) {
+
             throw new IllegalStateException("OpenSearch index não configurado (property search.opensearch.index).");
         }
 
@@ -191,7 +195,7 @@ public class OpenSearchRepositoryAdapter implements SearchRepositoryPortOut {
         log.info("[OpenSearchRepo] - [reindexAll] IN -> alias={} newIndex={}", alias, newIndex);
 
         try {
-            // descobrir indices atuais do alias
+            // 1 - descobrir indices atuais do alias
             var aliasResp = client.indices().getAlias(g -> g.name(alias));
             var currentIndices = new ArrayList<String>(aliasResp.result().keySet());
 
@@ -203,14 +207,84 @@ public class OpenSearchRepositoryAdapter implements SearchRepositoryPortOut {
                 log.info("[OpenSearchRepo] - [reindexAll] alias={} -> sources={}", alias, currentIndices);
             }
 
-            // cria indice novo (settings + mappings básicos)
+            // 2 - cria indice novo (settings + mappings básicos)
             client.indices().create(c -> c
                     .index(newIndex)
                     .settings(s -> s
                             .numberOfShards("1")
                             .numberOfReplicas("1"))
-                    .mappings(m -> m)
-            )
+                    .mappings(m -> m
+                            .properties("id", p -> p.keyword(k -> k))
+                            .properties("sku", p -> p.keyword(k -> k))
+                            .properties("name", p -> p.text(t -> t.analyzer("standard")))
+                            .properties("description", p -> p.text(t -> t.analyzer("standard")))
+                            .properties("price", p -> p.double_(d -> d))
+                            .properties("available", p -> p.boolean_(b -> b))
+                    )
+            );
+            log.info("[OpenSearchRepo] - [reindexAll] created index={}", newIndex);
+
+            // 3 - reindex (se houver fonte); espere terminar
+            if (!currentIndices.isEmpty()) {
+
+                var reindexResp = client.reindex(r -> r
+                        .source(s -> s.index(currentIndices))
+                        .dest(d -> d.index(newIndex).opType(OpType.Index))
+                        .refresh(true)
+                        .waitForCompletion(true)
+                );
+                log.info("[OpenSearchRepo] - [reindexAll] reindex done -> created={} updated={} failures={}",
+                        reindexResp.created(), reindexResp.updated(),
+                        (reindexResp.failures() == null ? 0 : reindexResp.failures().size()));
+
+                if (reindexResp.failures() != null && !reindexResp.failures().isEmpty()) {
+
+                    reindexResp.failures().forEach(f ->
+                            log.warn("[OpenSearchRepo] - [reindexall] failure index={} cause={}",
+                                    f.index(), (f.cause() != null ? f.cause().reason() : "n/a")));
+
+                }
+            }
+
+            // 4 - swap do alias de forma atômica
+            var actionsBuilder = new UpdateAliasesRequest.Builder();
+            for (String oldIdx : currentIndices) {
+
+                actionsBuilder.actions(a -> a.remove(r -> r.index(oldIdx).alias(alias)));
+            }
+
+            actionsBuilder.actions(a -> a.add(add -> add.index(newIndex).alias(alias)));
+            client.indices().updateAliases(actionsBuilder.build());
+            log.info("[OpenSearchRepo] - [reindexAll] alias swapped -> {} => {}", alias, newIndex);
+
+            // 5 - apaga indices antigos
+            for (String oldIdx : currentIndices) {
+
+                if (!oldIdx.equals(newIndex)) {
+
+                    try {
+
+                        client.indices().delete(d -> d.index(oldIdx));
+                        log.info("[OpenSearchRepo] - [reindexAll] deleted old index={}", oldIdx);
+                    } catch (Exception delEx) {
+                        log.warn("[OpenSearchRepo] - [reindexAll] could not delete old index={} err={}",
+                                oldIdx, delEx.getMessage());
+                    }
+                }
+            }
+
+            // 5 - refresh final do alias
+            client.indices().refresh(r -> r.index(alias));
+            log.info("[OpenSearchRepo] - [reindexAll] OUT -> OK (alias={} now points to {})", alias, newIndex);
+
+        } catch (OpenSearchException e) {
+
+            log.error("[OpenSearchRepo] - [reindexAll] FAIL status={} err={}", e.status(), e.getMessage(), e);
+            throw new IllegalStateException("Reindex failed: " + e.getMessage(), e);
+        } catch (Exception e) {
+
+            log.error("[OpenSearchRepo] - [reindexAll] FAIL err={}", e.getMessage(), e);
+            throw new IllegalStateException("Reindex failed: " + e.getMessage(), e);
         }
 
     }

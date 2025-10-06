@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-@EnableConfigurationProperties(KafkaProperties.class)
+@EnableConfigurationProperties(SearchKafkaProperties.class)
 @Slf4j
 public class KafkaConfig {
 

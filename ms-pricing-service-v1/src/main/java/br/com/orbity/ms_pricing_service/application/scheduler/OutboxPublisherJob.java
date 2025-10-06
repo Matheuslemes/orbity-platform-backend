@@ -18,11 +18,11 @@ public class OutboxPublisherJob {
     private final String topic;
 
     public OutboxPublisherJob(OutboxPortOut outbox, KafkaTemplate<String, String> kafka,
-                              @Value("${catalog.kafka.topics.price-changed.name:price-changed}") String topic) {
+                              @Value("${orbity.kafka.topics.price-changed.name:price-changed}") String topic) {
         this.outbox = outbox; this.kafka = kafka; this.topic = topic;
     }
 
-    @Scheduled(fixedDelayString = "${catalog.outbox.poll-interval-ms:1500}")
+    @Scheduled(fixedDelayString = "${orbity.outbox.poll-interval-ms:1500}")
     public void dispatch() {
 
         List<OutboxPortOut.OutboxRecord> batch = outbox.fetchUnpublished(200);

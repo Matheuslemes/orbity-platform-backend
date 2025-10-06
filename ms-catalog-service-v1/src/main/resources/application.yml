@@ -35,8 +35,8 @@ spring:
       # properties:
       #   spring.json.trusted.packages: "*"
 
-# mapas de tópicos (mantém prefixo 'catalog.kafka.*')
-catalog:
+# mapas de tópicos (mantém prefixo 'orbity.kafka.*')
+orbity:
   kafka:
     producer:
       topic-key: product-changed

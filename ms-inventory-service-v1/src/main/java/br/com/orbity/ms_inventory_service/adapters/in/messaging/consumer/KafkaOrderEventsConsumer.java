@@ -25,8 +25,8 @@ public class KafkaOrderEventsConsumer {
     @KafkaListener(
             id = "inventory-order-events-listener",
             groupId = "${spring.kafka.consumer.group-id:ms-inventory}",
-            topics = "${catalog.kafka.consumer.topics.order-events.name}",
-            concurrency = "${catalog.kafka.consumer.topics.order-events.concurrency:1}"
+            topics = "${orbity.kafka.consumer.topics.order-events.name}",
+            concurrency = "${orbity.kafka.consumer.topics.order-events.concurrency:1}"
     )
     public void onOrderEvent(
             ConsumerRecord<String, String> rec,

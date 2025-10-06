@@ -14,14 +14,14 @@ public record ProductIndex(
         Double price,
         Long availableQty,
         OffsetDateTime updatedAt
-
 ) {
     public static ProductIndex of(
             UUID id, String sku, String name, String description, List<String> categories,
             List<String> tags, Double price, Long availableQty, OffsetDateTime updatedAt) {
-        return new ProductIndex(id, trim(sku), trim(name), trim(description), categories, tags, price, safeLong(availableQty), updatedAt);
+        return new ProductIndex(id, trim(sku), trim(name), trim(description),
+                categories, tags, price, safeLong(availableQty), updatedAt);
     }
 
     private static String trim(String s) { return s == null ? null : s.trim(); }
-    private static Long safeLong(Long v) { return v == null ? 0l : v; }
+    private static Long safeLong(Long v) { return v == null ? 0L : v; }
 }
