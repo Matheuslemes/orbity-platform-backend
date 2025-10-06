@@ -79,14 +79,13 @@
         <dependency>
             <groupId>org.opensearch.client</groupId>
             <artifactId>opensearch-java</artifactId>
-            <version>2.13.0</version>
+            <version>2.12.0</version>
         </dependency>
 
-        <!-- Low-level REST client usado pelo transport do OpenSearch -->
         <dependency>
-            <groupId>org.elasticsearch.client</groupId>
-            <artifactId>elasticsearch-rest-client</artifactId>
-            <version>8.14.3</version>
+            <groupId>org.opensearch.client</groupId>
+            <artifactId>opensearch-rest-client</artifactId>
+            <version>2.12.0</version>
         </dependency>
 
         <!-- OpenAPI / Swagger UI -->
