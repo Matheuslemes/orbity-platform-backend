@@ -14,7 +14,6 @@ public class KeycloakDirectoryAdapter implements IdpDirectoryPortOut {
     @Override
     public Optional<IdProfile> lookupBySubOrEmail(String subOrEmail) {
 
-        // placeholder: chamar endpoint userinfo/Keycloak se necessário
         log.info("[KeycloakDirectoryAdapter] lookup {}", subOrEmail);
         return Optional.empty();
 
