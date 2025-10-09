@@ -1,9 +1,9 @@
-package br.com.orbity.customer.domain.model;
+package br.com.orbity.customer.dto;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-public record Address(
+public record AddressDto(
 
         UUID id,
         String label,
@@ -20,3 +20,4 @@ public record Address(
         OffsetDateTime updatedAt
 
 ) { }
+
