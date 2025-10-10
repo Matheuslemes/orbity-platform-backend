@@ -15,7 +15,7 @@ public record AddressDto(
         String state,
         String country,
         String zip,
-        boolean main,
+        Boolean main,
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt
 

@@ -27,12 +27,15 @@ public class IdpEventsConsumer {
     public void onIdpEvent(ConsumerRecord<String, String> rec, Acknowledgment ack) {
 
         try {
+
             final String payload = rec.value();
             if (payload == null || payload.isBlank()) {
+
                 log.warn("[KafkaIdpEventsConsumer] BLANK payload topic={} off={} key={}",
                         rec.topic(), rec.offset(), rec.key());
                 ack.acknowledge();
                 return;
+
             }
 
             JsonNode node = om.readTree(payload);
@@ -106,4 +109,5 @@ public class IdpEventsConsumer {
         return digits.isEmpty() ? null : digits;
 
     }
+
 }

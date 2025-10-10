@@ -4,6 +4,7 @@ import br.com.orbity.customer.domain.model.Address;
 import br.com.orbity.customer.domain.model.Consent;
 import br.com.orbity.customer.domain.model.Customer;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -16,6 +17,8 @@ public interface CustomerRepositoryPortOut {
     Optional<Customer> findBySub(String sub);
 
     Customer save(Customer customer);
+
+    List<Customer> list(int page, int size);
 
     void addAddress(UUID customerId, Address a);
 

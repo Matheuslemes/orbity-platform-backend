@@ -1,14 +1,15 @@
 package br.com.orbity.customer.mapping;
 
 import br.com.orbity.customer.adapters.out.persistence.CustomerJpaEntity;
-import br.com.orbity.customer.adapters.out.persistence.CustomerSpringRepository;
 import br.com.orbity.customer.domain.model.Address;
 import br.com.orbity.customer.domain.model.Consent;
 import br.com.orbity.customer.domain.model.Customer;
 import br.com.orbity.customer.domain.model.CustomerId;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 
+@Component
 public class CustomerJpaMapper {
 
     public static Customer toDomain(CustomerJpaEntity e) {

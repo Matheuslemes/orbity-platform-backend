@@ -24,9 +24,12 @@ public class KafkaCustomerEventPublisher implements CustomerEventPublisherPortOu
 
     @Override
     public void publish(Object domainEvent) {
+
         if (domainEvent == null) {
+
             log.warn("[KafkaCustomerEventPublisher] Ignorando publish de evento nulo");
             return;
+
         }
 
         final String key = resolveKey(domainEvent);
@@ -61,6 +64,7 @@ public class KafkaCustomerEventPublisher implements CustomerEventPublisherPortOu
                     }
 
                 });
+
     }
 
     // helpers
@@ -89,6 +93,9 @@ public class KafkaCustomerEventPublisher implements CustomerEventPublisherPortOu
         } catch (Exception ignored) {
 
             return null;
+
         }
+
     }
+
 }

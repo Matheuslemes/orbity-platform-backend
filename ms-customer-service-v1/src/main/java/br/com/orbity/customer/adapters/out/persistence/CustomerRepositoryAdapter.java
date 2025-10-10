@@ -7,8 +7,10 @@ import br.com.orbity.customer.domain.port.out.CustomerRepositoryPortOut;
 import br.com.orbity.customer.mapping.CustomerJpaMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,6 +19,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CustomerRepositoryAdapter implements CustomerRepositoryPortOut {
 
+    private final CustomerSpringRepository jpa;      // sua interface extends JpaRepository<..., ...>
+    private final CustomerJpaMapper mapper;
     private final CustomerSpringRepository repository;
 
     @Override
@@ -51,6 +55,17 @@ public class CustomerRepositoryAdapter implements CustomerRepositoryPortOut {
 
         var saved = repository.save(entity);
         return CustomerJpaMapper.toDomain(saved);
+
+    }
+
+    @Override
+    public List<Customer> list(int page, int size) {
+
+        var pageable = PageRequest.of(Math.max(page, 0), Math.max(size, 1));
+
+        return jpa.findAll(pageable)
+                .map(CustomerJpaMapper::toDomain)
+                .toList();
 
     }
 
@@ -95,7 +110,6 @@ public class CustomerRepositoryAdapter implements CustomerRepositoryPortOut {
         found.setUpdatedAt(OffsetDateTime.now());
         repository.save(e);
 
-
     }
 
     @Override
@@ -126,4 +140,5 @@ public class CustomerRepositoryAdapter implements CustomerRepositoryPortOut {
         repository.save(e);
 
     }
+
 }

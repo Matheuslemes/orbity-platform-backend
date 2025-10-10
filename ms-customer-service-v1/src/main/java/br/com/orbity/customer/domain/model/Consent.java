@@ -7,6 +7,6 @@ public record Consent(
         boolean marketingOption,
         boolean termsAccepted,
         boolean dataProcessing,
-        OffsetDateTime updateAt
+        OffsetDateTime updatedAt
 
 ) { }
