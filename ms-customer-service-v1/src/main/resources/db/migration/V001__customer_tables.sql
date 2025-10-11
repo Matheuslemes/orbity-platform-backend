@@ -3,7 +3,7 @@ CREATE TABLE customers (
     sub             VARCHAR(190) UNIQUE,
     email           VARCHAR(190) UNIQUE NOT NULL,
     first_name      VARCHAR(120),
-    last_name       VARCHAR(120).
+    last_name       VARCHAR(120),
     phone           VARCHAR(40),
     created_at      TIMESTAMP NOT NULL DEFAULT now(),
     updated_at      TIMESTAMP NOT NULL DEFAULT now()
@@ -20,14 +20,14 @@ CREATE TABLE addresses (
     city            VARCHAR(120),
     state           VARCHAR(80),
     country         VARCHAR(80),
-    zip             VARCHAR(20).
+    zip             VARCHAR(20),
     main            BOOLEAN NOT NULL DEFAULT false,
     created_at      TIMESTAMP NOT NULL DEFAULT now(),
     updated_at      TIMESTAMP NOT NULL DEFAULT now()
 );
 
 CREATE TABLE consents (
-    customers_id        UUID PRIMARY KEY REFERENCES customers(id) ON DELETE CASCADE,
+    customer_id        UUID PRIMARY KEY REFERENCES customers(id) ON DELETE CASCADE,
     marketing_option    BOOLEAN NOT NULL DEFAULT false,
     terms_accepted      BOOLEAN NOT NULL DEFAULT false,
     data_processing     BOOLEAN NOT NULL DEFAULT false,

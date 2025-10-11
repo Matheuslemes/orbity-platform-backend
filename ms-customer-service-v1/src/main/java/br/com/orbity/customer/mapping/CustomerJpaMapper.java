@@ -24,7 +24,7 @@ public class CustomerJpaMapper {
                     e.getConsent().isMarketingOption(),
                     e.getConsent().isTermsAccepted(),
                     e.getConsent().isDataProcessing(),
-                    e.getConsent().getUpdateAt()
+                    e.getConsent().getUpdatedAt()
             ));
 
         }

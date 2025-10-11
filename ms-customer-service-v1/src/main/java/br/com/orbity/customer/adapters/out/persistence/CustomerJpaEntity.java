@@ -15,28 +15,55 @@ import java.util.UUID;
 public class CustomerJpaEntity {
 
     @Id
+    @Column(name = "id")
     private UUID id;
 
-    @Column(unique = true)
+    @Column(name = "sub", unique = true)
     private String sub;
 
-    @Column(unique = true, nullable = false)
+    @Column(name = "email", unique = true, nullable = false)
     private String email;
 
+    @Column(name = "first_name")
     private String firstName;
 
+    @Column(name = "last_name")
     private String lastName;
 
+    @Column(name = "phone")
     private String phone;
 
+    @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
+    @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
-    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "customer",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY)
     private List<AddressJpaEntity> addresses;
 
-    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "customer",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY)
     private ConsentJpaEntity consent;
+
+    @PrePersist
+    void prePersist() {
+
+        var now = OffsetDateTime.now();
+        if (createdAt == null) createdAt = now;
+        if (updatedAt == null) updatedAt = now;
+
+    }
+
+    @PreUpdate
+    void preUpdate() {
+
+        updatedAt = OffsetDateTime.now();
+
+    }
 
 }

@@ -19,7 +19,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CustomerRepositoryAdapter implements CustomerRepositoryPortOut {
 
-    private final CustomerSpringRepository jpa;      // sua interface extends JpaRepository<..., ...>
+    private final CustomerSpringRepository jpa;
     private final CustomerJpaMapper mapper;
     private final CustomerSpringRepository repository;
 
@@ -135,7 +135,7 @@ public class CustomerRepositoryAdapter implements CustomerRepositoryPortOut {
         ce.setMarketingOption(c.marketingOption());
         ce.setTermsAccepted(c.termsAccepted());
         ce.setDataProcessing(c.dataProcessing());
-        ce.setUpdateAt(OffsetDateTime.now());
+        ce.setUpdatedAt(OffsetDateTime.now());
         e.setConsent(ce);
         repository.save(e);
 
