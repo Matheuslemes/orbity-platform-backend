@@ -63,7 +63,17 @@ public class OrderJpaMapper {
 
     public OrderItemJpaEntity toEntityItem(OrderItem i, OrderJpaEntity orderRef) {
 
+        var e = new OrderItemJpaEntity();
+        e.setId(i.id());
+        e.setOrder(orderRef);
+        e.setProductId(i.productId());
+        e.setSku(i.sku());
+        e.setName(i.name());
+        e.setUnitPrice(i.unitPrice());
+        e.setQuantity(i.quantity());
+        e.setLineTotal(i.lineTotal());
 
+        return e;
 
     }
 }
