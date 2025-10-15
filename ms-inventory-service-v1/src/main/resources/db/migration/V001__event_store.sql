@@ -1,5 +1,3 @@
--- tabela append-only para eventos de dominio de estoque
-
 CREATE TABLE IF NOT EXISTS event_store (
     id              BIGSERIAL PRIMARY KEY,
     aggregate_id    UUID        NOT NULL,

@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 
 // utilitario básico (opitional) para set/get manual além de @Cacheable
-
 @Component
 public class RedisPriceCacheAdapter {
 

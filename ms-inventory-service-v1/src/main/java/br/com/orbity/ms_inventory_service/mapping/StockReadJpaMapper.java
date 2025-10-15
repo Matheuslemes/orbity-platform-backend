@@ -1,6 +1,5 @@
 package br.com.orbity.ms_inventory_service.mapping;
 
-
 import br.com.orbity.ms_inventory_service.adapters.out.persistence.StockReadJpaEntity;
 import br.com.orbity.ms_inventory_service.domain.port.out.StockReadRepositoryPortOut;
 import org.springframework.stereotype.Component;

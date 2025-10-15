@@ -1,6 +1,5 @@
 package br.com.orbity.ms_inventory_service.application.process;
 
-
 import br.com.orbity.ms_inventory_service.domain.event.StockReleased;
 import br.com.orbity.ms_inventory_service.domain.event.StockReserved;
 import br.com.orbity.ms_inventory_service.domain.port.out.StockEventPublisherPortOut;

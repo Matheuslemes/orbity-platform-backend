@@ -1,4 +1,4 @@
-package br.com.orbity.ms_pricing_service.config;
+package br.com.catalog.ms_orders_service_v1.config;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -12,6 +12,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 public class SecurityConfig {
 
+    // modo protegido: habilita Resource Server (JWT) quando issuer-uri ou jwk-set-uri estiverem configurados
     @Bean
     @Order(1)
     @ConditionalOnProperty(
@@ -20,11 +21,12 @@ public class SecurityConfig {
             matchIfMissing = false
     )
     public SecurityFilterChain oauth2ResourceServer(HttpSecurity http) throws Exception {
+
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/swagger-ui.html", "/swagger-ui", "/v3/api-docs/**",
+                                "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**",
                                 "/actuator/health", "/actuator/info"
                         ).permitAll()
                         .anyRequest().authenticated()
@@ -32,23 +34,23 @@ public class SecurityConfig {
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {}));
 
         return http.build();
-
     }
 
+    // Modo dev: tudo liberado quando não há configuração de JWT
     @Bean
     @Order(2)
     @ConditionalOnProperty(
             prefix = "spring.security.oauth2.resourceserver.jwt",
-            name = {"issuer-uri", " jwt-set-uri"},
+            name = {"issuer-uri", "jwk-set-uri"},
             matchIfMissing = true,
-            havingValue = "" // cobre caso prioridade vazia
+            havingValue = "" // cobre valores vazios
     )
     public SecurityFilterChain openDev(HttpSecurity http) throws Exception {
+
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
 
         return http.build();
-
     }
 }

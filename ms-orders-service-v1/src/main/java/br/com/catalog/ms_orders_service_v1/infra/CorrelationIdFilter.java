@@ -2,9 +2,7 @@ package br.com.catalog.ms_orders_service_v1.infra;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.UUID;

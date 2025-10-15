@@ -1,6 +1,5 @@
 package br.com.orbity.ms_pricing_service.application.usecase;
 
-
 import br.com.orbity.ms_pricing_service.application.policy.TransactionalPolicy;
 import br.com.orbity.ms_pricing_service.domain.event.PriceChangedEvent;
 import br.com.orbity.ms_pricing_service.domain.model.Money;

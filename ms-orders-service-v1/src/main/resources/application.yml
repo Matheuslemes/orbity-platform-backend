@@ -4,3 +4,104 @@ server:
 spring:
   application:
     name: ms-orders
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/orders}
+    username: ${DB_USER:orders}
+    password: ${DB_PASS:orders}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc.time_zone: UTC
+    open-in-view: false
+    show-sql: false
+
+  flyway:
+    enabled: true
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 5m         # TTL curto p/ listagens ("Meus Pedidos")
+      cache-null-values: false
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:127.0.0.1:9094}
+    admin:
+      auto-create: false
+    consumer:
+      group-id: ${KAFKA_GROUP_ID:ms-orders}
+      enable-auto-commit: false
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+# mapas de tópicos (mantém prefixo de domínio do serviço)
+orders:
+  kafka:
+    producer:
+      topic-key: order-events            # usado pelo publisher (status-updated/canceled…)
+      topics:
+        order-events:
+          name: ${ORDER_EVENTS_TOPIC:orders.status.events.v1}
+          partitions: 1
+          replicas: 1
+    consumer:
+      topic-key: order-created           # usado pelo consumer que persiste pedidos
+      topics:
+        order-created:
+          name: ${ORDER_CREATED_TOPIC:checkout.order.created.v1}
+          concurrency: ${ORDER_CREATED_CONCURRENCY:1}
+
+  flyway:
+    enabled: true
+    clean-disabled: true        # evita 'clean' acidental em prod
+    # baseline-on-migrate: true  # habilite se precisar baselinar DB já existente
+
+# (Opcional) suporte a criação simples via TopicAdminConfig, se você usar esse componente
+app:
+  kafka:
+    topics:
+      auto-create: ${TOPIC_AUTO_CREATE:true}
+      order-events: ${ORDER_EVENTS_TOPIC:orders.status.events.v1}
+      order-created: ${ORDER_CREATED_TOPIC:checkout.order.created.v1}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    tryItOutEnabled: true
+
+logging:
+  level:
+    org.hibernate.SQL: warn
+    org.springframework.kafka: info
+    org.postgresql: info
+    br.com.catalog.orders: info
+
+# PROFILE: secured → habilita OAuth2 Resource Server (Keycloak, etc.)
+# Ative com: -Dspring.profiles.active=secured
+---
+spring:
+  config:
+    activate:
+      on-profile: secured
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OAUTH2_ISSUER_URI:http://localhost:8085/realms/master}
+          # jwk-set-uri: ${OAUTH2_JWKS_URI:http://localhost:8085/realms/master/protocol/openid-connect/certs}

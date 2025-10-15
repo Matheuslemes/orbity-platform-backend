@@ -1,6 +1,5 @@
 package br.com.orbity.ms_pricing_service.adapters.out.persistence;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

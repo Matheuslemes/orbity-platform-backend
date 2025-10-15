@@ -1,12 +1,11 @@
 package br.com.orbity.ms_pricing_service.domain.service;
 
-// regras simpels: pisos, tetos, arredondamentos, impostos, etc
-
 import br.com.orbity.ms_pricing_service.domain.model.Money;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+// regras simpels: pisos, tetos, arredondamentos, impostos, etc
 public class PricePolicyService {
 
     public Money normalize(Money candidate) {
