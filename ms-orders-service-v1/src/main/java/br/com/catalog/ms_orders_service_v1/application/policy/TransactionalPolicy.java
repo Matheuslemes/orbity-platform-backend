@@ -11,19 +11,18 @@ import java.util.function.Supplier;
 @RequiredArgsConstructor
 public class TransactionalPolicy {
 
-    private final PlatformTransactionManager txManager;
+    private final TransactionTemplate tx;
 
-    public void runInTx(Runnable r) {
 
-        var tt = new TransactionTemplate(txManager);
-        tt.executeWithoutResult(status -> r.run());
+    public void runInTx(Runnable action) {
+
+        tx.executeWithoutResult(status -> action.run());
 
     }
 
-    public <T> T callInTx(Supplier<T> s) {
+    public <T> T callInTx(Supplier<T> action) {
 
-        var tt = new TransactionTemplate(txManager);
-        return tt.execute(status -> s.get());
+        return tx.execute(status -> action.get());
 
     }
 }

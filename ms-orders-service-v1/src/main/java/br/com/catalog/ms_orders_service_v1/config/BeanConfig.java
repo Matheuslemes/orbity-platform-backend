@@ -10,16 +10,16 @@ import org.springframework.transaction.support.TransactionTemplate;
 public class BeanConfig {
 
     @Bean
-    public TransactionTemplate transactionTemplate(PlatformTransactionManager txManager) {
+    public TransactionTemplate transactionTemplate(PlatformTransactionManager ptm) {
 
-        return new TransactionTemplate(txManager);
+        return new TransactionTemplate(ptm);
 
     }
 
     @Bean
     public TransactionalPolicy transactionalPolicy(TransactionTemplate txTemplate) {
 
-        return new TransactionalPolicy((PlatformTransactionManager) txTemplate);
+        return new TransactionalPolicy(txTemplate);
 
     }
 }
