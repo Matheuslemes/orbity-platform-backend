@@ -4,7 +4,7 @@ import java.util.Optional;
 
 public interface CorrelationStorePortOut {
 
-    boolean trLock(String key, long ttSeconds);
+    boolean tryLock(String key, long ttSeconds);
 
     void release(String key);
 
