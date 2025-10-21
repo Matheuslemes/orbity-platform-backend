@@ -10,6 +10,6 @@ public record CheckoutItem(
         String name,
         int quantity,
         BigDecimal unitPrice,
-        BigDecimal lineTota
+        BigDecimal lineTotal
 
 ) { }
