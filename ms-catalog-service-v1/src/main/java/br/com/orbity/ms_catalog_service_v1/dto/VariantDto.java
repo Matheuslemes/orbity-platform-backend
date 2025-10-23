@@ -9,9 +9,11 @@ import java.util.UUID;
 @Builder
 @Schema(name = "Variant")
 public record VariantDto(
+
         UUID id,
         @NotBlank String sku,
         @NotBlank String name,
         String attributesJson
-) {}
+
+) { }
 

@@ -3,10 +3,12 @@ package br.com.orbity.ms_catalog_service_v1.domain.model;
 import java.util.UUID;
 
 public record Variant(
+
         UUID id,
         String sku,
         String name,
         String attributesJson
+
 ) {
     public Variant {
 

@@ -41,5 +41,7 @@ public class KafkaCatalogConsumer {
                     rec.topic(), rec.offset(), rec.key(), e.getMessage(), e);
 
         }
+
     }
+
 }

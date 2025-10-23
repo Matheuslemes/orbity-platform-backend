@@ -1,6 +1,12 @@
 package br.com.orbity.ms_catalog_service_v1.domain.model;
 
-public record Media(String url, String label, boolean primary) {
+public record Media(
+
+        String url,
+        String label,
+        boolean primary
+
+) {
 
     public Media {
         if (url == null || url.isBlank()) {
@@ -8,4 +14,5 @@ public record Media(String url, String label, boolean primary) {
         }
 
     }
+
 }

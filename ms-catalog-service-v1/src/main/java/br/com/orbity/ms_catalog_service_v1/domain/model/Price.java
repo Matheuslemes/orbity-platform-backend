@@ -15,4 +15,5 @@ public record Price(String currency, BigDecimal amount) {
         }
 
     }
+
 }

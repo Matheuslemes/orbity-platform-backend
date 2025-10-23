@@ -1,6 +1,7 @@
 package br.com.orbity.ms_checkout_service_v1.adapters.out.persistence;
 
 import br.com.orbity.ms_checkout_service_v1.domain.port.out.OutboxPortOut;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -16,7 +17,7 @@ public class OutboxRepositoryAdapter implements OutboxPortOut {
     private final OutboxSpringData repo;
 
     @Override
-    public void append(String type, String payload, Object aggregateId) {
+    public void append(String type, JsonNode payload, Object aggregateId) {
 
         var e = new OutboxJpaEntity();
         e.setId(UUID.randomUUID());

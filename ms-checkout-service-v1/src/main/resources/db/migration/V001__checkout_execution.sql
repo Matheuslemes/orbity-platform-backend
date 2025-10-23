@@ -1,16 +1,20 @@
 CREATE TABLE IF NOT EXISTS checkout_execution (
     id                UUID PRIMARY KEY,
-    customer_id       UUID        NOT NULL,
-    total_amount      NUMERIC(12,2) NOT NULL,
-    status            VARCHAR(30) NOT NULL,
+    customer_id       UUID           NOT NULL,
+    total_amount      NUMERIC(12,2)  NOT NULL,
+    status            VARCHAR(30)    NOT NULL,
     saga_step         VARCHAR(120),
     saga_compensation VARCHAR(120),
-    payload           TEXT,
-    created_at        TIMESTAMP NOT NULL DEFAULT now(),
-    updated_at        TIMESTAMP NOT NULL DEFAULT now()
+    payload           JSONB          NOT NULL DEFAULT '{}'::jsonb,
+    created_at        TIMESTAMPTZ    NOT NULL DEFAULT now(),
+    updated_at        TIMESTAMPTZ    NOT NULL DEFAULT now()
 );
 
-CREATE INDEX IF NOT EXISTS idx_checkout_customer ON checkout_execution(customer_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_checkout_customer_created
+    ON checkout_execution(customer_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_checkout_status_created
+    ON checkout_execution(status, created_at DESC);
 
 CREATE OR REPLACE FUNCTION trg_set_timestamp_checkout_exec()
 RETURNS TRIGGER AS $$

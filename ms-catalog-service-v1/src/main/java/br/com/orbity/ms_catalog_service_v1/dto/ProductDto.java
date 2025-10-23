@@ -11,6 +11,7 @@ import java.util.UUID;
 @Builder
 @Schema(name = "Product")
 public record ProductDto(
+
         UUID id,
         @NotBlank String sku,
         @NotBlank String name,
@@ -18,5 +19,6 @@ public record ProductDto(
         String slug,
         @Valid List<VariantDto> variants,
         Long version
-) {}
+
+) { }
 

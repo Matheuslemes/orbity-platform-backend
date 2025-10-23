@@ -1,6 +1,145 @@
 server:
-  port: 8088
+  port: 8087
 
 spring:
   application:
     name: ms-checkout
+
+  # Se optar por manter estado da SAGA em PostgreSQL, habilite o datasource/JPA:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/checkout}
+    username: ${DB_USER:checkout}
+    password: ${DB_PASS:checkout}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc.time_zone: UTC
+    open-in-view: false
+    show-sql: false
+
+  # Se optar por correlação/idempotência em Redis (stateless)
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  cache:
+    type: redis
+    redis:
+      # TTL padrão para caches que não tiverem TTL específico no CacheConfig
+      time-to-live: 10m
+      cache-null-values: false
+
+  kafka:
+    # host: 127.0.0.1:9094 ; container: kafka:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:127.0.0.1:9094}
+    admin:
+      auto-create: true
+    consumer:
+      group-id: ms-checkout
+      # auto-offset-reset: latest
+      # Para JsonDeserializer (se usar):
+      # properties:
+      #   spring.json.trusted.packages: "*"
+
+# mapas de tópicos (mantém prefixo 'orbity.kafka.*')
+orbity:
+  kafka:
+    # PRODUCER: eventos que o checkout publica
+    producer:
+      topic-key: checkout-events
+      topics:
+        checkout-started:
+          name: ${CHECKOUT_STARTED_TOPIC:checkout.started.v1}
+          partitions: 1
+          replicas: 1
+        inventory-reservation-requested:
+          name: ${INVENTORY_RES_REQ_TOPIC:inventory.reservation.requested.v1}
+          partitions: 1
+          replicas: 1
+        order-created:
+          name: ${ORDER_CREATED_TOPIC:orders.created.v1}
+          partitions: 1
+          replicas: 1
+        payment-authorized:
+          name: ${PAYMENT_AUTHORIZED_TOPIC:payment.authorized.v1}
+          partitions: 1
+          replicas: 1
+        payment-denied:
+          name: ${PAYMENT_DENIED_TOPIC:payment.denied.v1}
+          partitions: 1
+          replicas: 1
+        inventory-reservation-confirmed:
+          name: ${INVENTORY_RES_CONFIRMED_TOPIC:inventory.reservation.confirmed.v1}
+          partitions: 1
+          replicas: 1
+        inventory-reservation-denied:
+          name: ${INVENTORY_RES_DENIED_TOPIC:inventory.reservation.denied.v1}
+          partitions: 1
+          replicas: 1
+
+    # CONSUMER: eventos que o checkout consome (gateways/estoque)
+    consumer:
+      topic-key: integration-events
+      topics:
+        payment-events:
+          name: ${PAYMENT_EVENTS_TOPIC:payment.events.v1}     # ex.: authorized/denied
+          concurrency: 1
+        inventory-events:
+          name: ${INVENTORY_EVENTS_TOPIC:inventory.events.v1} # ex.: reserved/denied
+          concurrency: 1
+
+# Suporte ao TopicAdminConfig (auto-criar tópico via propriedade simples)
+app:
+  kafka:
+    topics:
+      auto-create: ${TOPIC_AUTO_CREATE:true}
+      checkout-started: ${CHECKOUT_STARTED_TOPIC:checkout.started.v1}
+      inventory-reservation-requested: ${INVENTORY_RES_REQ_TOPIC:inventory.reservation.requested.v1}
+      order-created: ${ORDER_CREATED_TOPIC:orders.created.v1}
+      payment-authorized: ${PAYMENT_AUTHORIZED_TOPIC:payment.authorized.v1}
+      payment-denied: ${PAYMENT_DENIED_TOPIC:payment.denied.v1}
+      inventory-reservation-confirmed: ${INVENTORY_RES_CONFIRMED_TOPIC:inventory.reservation.confirmed.v1}
+      inventory-reservation-denied: ${INVENTORY_RES_DENIED_TOPIC:inventory.reservation.denied.v1}
+      payment-events: ${PAYMENT_EVENTS_TOPIC:payment.events.v1}
+      inventory-events: ${INVENTORY_EVENTS_TOPIC:inventory.events.v1}
+
+# Flyway (se usar Postgres para estado da SAGA)
+checkout:
+  flyway:
+    enabled: true
+    clean-disabled: true
+    # baseline-on-migrate: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    tryItOutEnabled: true
+
+logging:
+  level:
+    org.hibernate.SQL: warn
+    org.springframework.kafka: info
+    org.postgresql: info
+
+# PROFILE: secured  → habilita OAuth2 Resource Server (Keycloak, etc.)
+# Ative com:  -Dspring.profiles.active=secured
+---
+spring:
+  config:
+    activate:
+      on-profile: secured
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OAUTH2_ISSUER_URI:http://localhost:8085/realms/master}
+          # jwk-set-uri: ${OAUTH2_JWKS_URI:http://localhost:8085/realms/master/protocol/openid-connect/certs}
