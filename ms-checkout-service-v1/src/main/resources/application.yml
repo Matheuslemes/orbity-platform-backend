@@ -24,8 +24,9 @@ spring:
   # Se optar por correlação/idempotência em Redis (stateless)
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
+      enabled: false
+#      host: ${REDIS_HOST:localhost}
+#      port: ${REDIS_PORT:6379}
 
   cache:
     type: redis
@@ -110,6 +111,8 @@ app:
 
 # Flyway (se usar Postgres para estado da SAGA)
 checkout:
+  profile:
+    mode: postgres-saga
   flyway:
     enabled: true
     clean-disabled: true

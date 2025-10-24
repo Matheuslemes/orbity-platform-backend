@@ -10,15 +10,19 @@ import br.com.orbity.ms_checkout_service_v1.domain.port.out.CorrelationStorePort
 import br.com.orbity.ms_checkout_service_v1.domain.port.out.OutboxPortOut;
 import br.com.orbity.ms_checkout_service_v1.domain.port.out.PricingServicePortOut;
 import br.com.orbity.ms_checkout_service_v1.domain.port.out.SagaStateRepositoryPortOut;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class StartCheckoutUseCase implements StartCheckoutCommand {
@@ -31,75 +35,103 @@ public class StartCheckoutUseCase implements StartCheckoutCommand {
     private final IdempotencyPolicy idem;
     private final ObjectMapper om;
 
-    // opcionais (dependem do perfil escolhido)
     private final Optional<SagaStateRepositoryPortOut> sagaRepoOpt;
     private final Optional<CorrelationStorePortOut> correlationOpt;
 
-    // TTL do lock de idempotência (segundos), configurável
     @Value("${app.checkout.idem-lock-ttl-seconds:60}")
     private int idemLockTtlSeconds;
 
     @Override
     public Checkout start(@NonNull Checkout draft, String idempotencyKey) {
+        log.info("[StartCheckoutUseCase] - [start] IN -> draftId={} customerId={} idemKeyPresent={}",
+                safe(draft.id()), safe(draft.customerId()), idempotencyKey != null);
 
-        // Gera chave de idempotência (ex.: "checkout:start:{hash}")
-        final String key = idem.key("checkout:start", idempotencyKey);
+        if (draft.id() == null || draft.customerId() == null) {
+            log.error("[StartCheckoutUseCase] - [start] invalid draft: id/customerId are required");
+            throw new IllegalArgumentException("draft.id and draft.customerId are required");
+        }
 
-        // Tenta aplicar lock SE existir CorrelationStore (Redis). Caso contrário, segue sem lock.
-        boolean locked = correlationOpt
-                .map(c -> c.tryLock(key, idemLockTtlSeconds))
-                .orElse(true);
+        final String idemKey = idem.key("checkout:start",
+                idempotencyKey != null ? idempotencyKey : draft.id().toString());
+
+        boolean locked = correlationOpt.map(c -> c.tryLock(idemKey, idemLockTtlSeconds)).orElse(true);
 
         if (!locked) {
+
+            log.warn("[StartCheckoutUseCase] - [start] idempotency lock denied key={} ttlSeconds={}", idemKey, idemLockTtlSeconds);
             throw new IllegalStateException("Duplicate or in-flight request");
+
         }
 
         try {
+
             return tx.inTx(() -> {
+                var recomputedTotal = pricing.recomputeTotal(draft);
 
-                // 1) Recalcula o total (defensivo) e aplica no draft
-                var recomputed = pricing.recomputeTotal(draft);
-                draft.setTotalAmount(recomputed);
+                var now = OffsetDateTime.now();
+                var started = new Checkout(
+                        draft.id(),
+                        draft.customerId(),
+                        draft.items(),
+                        draft.shippingAddress(),
+                        draft.paymentInfo(),
+                        recomputedTotal,
+                        CheckoutStatus.STARTED,
+                        draft.saga(),                               // mantemos o estado atual da SAGA (se houver)
+                        draft.createdAt() != null ? draft.createdAt() : now,
+                        now
+                );
 
-                // 2) Marca status STARTED e timestamps se faltarem
-                draft.setStatus(CheckoutStatus.STARTED);
-                if (draft.createdAt() == null) draft.setCreatedAt(OffsetDateTime.now());
-                draft.setUpdatedAt(OffsetDateTime.now());
+                sagaRepoOpt.ifPresent(repo -> {
+                    log.debug("[StartCheckoutUseCase] - [start] persisting SAGA state id={}", started.id());
+                    repo.upsert(started);
+                });
 
-                // 3) Persiste estado da SAGA se houver repositório (modo Postgres)
-                sagaRepoOpt.ifPresent(repo -> repo.upsert(draft));
+                var evt = new CheckoutStartedEvent(started.id(), started.customerId(), now);
 
-                // 4) Outbox → "checkout.started"
-                var evt = new CheckoutStartedEvent(draft.id(), draft.customerId(), OffsetDateTime.now());
-                String jsonPayload = toJson(evt);
+                outbox.append(EVENT_TYPE, toJson(evt), started.id());
+                log.info("[StartCheckoutUseCase] - [start] appended outbox event type={} aggregateId={}",
+                        EVENT_TYPE, started.id());
 
-                // agreggateId = checkoutId
-                outbox.append(EVENT_TYPE, jsonPayload, draft.id());
+                log.info("[StartCheckoutUseCase] - [start] OK id={} status={} total={}",
+                        started.id(), started.status(), started.totalAmount());
 
-                return draft;
+                return started;
+
             });
 
         } catch (RuntimeException re) {
-            // repropaga Runtime
+
+            log.error("[StartCheckoutUseCase] - [start] runtime failure id={} msg={}",
+                    draft.id(), re.getMessage(), re);
             throw re;
 
         } catch (Exception e) {
-            // checked → IllegalState
+
+            log.error("[StartCheckoutUseCase] - [start] failure id={} msg={}", draft.id(), e.getMessage(), e);
             throw new IllegalStateException("start checkout failed", e);
 
         } finally {
-            // Libera lock se houver CorrelationStore
-            correlationOpt.ifPresent(c -> c.release(key));
+
+            correlationOpt.ifPresent(c -> {
+                c.release(idemKey);
+                log.debug("[StartCheckoutUseCase] - [start] idempotency lock released key={}", idemKey);
+            });
+
         }
+
     }
 
-    // -------- helpers --------
+    private JsonNode toJson(Object obj) {
 
-    private String toJson(Object obj) {
-        try {
-            return om.writeValueAsString(obj);
-        } catch (Exception e) {
-            throw new IllegalStateException("serialize event failed", e);
-        }
+        return om.valueToTree(obj);
+
     }
+
+    private String safe(UUID id) {
+
+        return id == null ? "null" : id.toString();
+
+    }
+
 }

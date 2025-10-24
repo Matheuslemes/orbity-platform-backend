@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(prefix = "catalog.profile", name = "mode", havingValue = "postgres-saga", matchIfMissing = false)
+@ConditionalOnProperty(prefix = "checkout.flyway", name = "enabled", havingValue = "true", matchIfMissing = false)
 public class CheckoutRepositoryAdapter implements SagaStateRepositoryPortOut {
 
     private final CheckoutExecutionSpringData repo;
@@ -33,4 +33,5 @@ public class CheckoutRepositoryAdapter implements SagaStateRepositoryPortOut {
         return repo.findById(checkoutId).map(mapper::toDomain);
 
     }
+
 }

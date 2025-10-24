@@ -1,16 +1,18 @@
 package br.com.orbity.ms_checkout_service_v1.application.policy;
 
-import org.springframework.transaction.PlatformTransactionManager;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
 
+
+@Slf4j
+@RequiredArgsConstructor
+@Component
 public class TransactionalPolicy {
+
     private final TransactionTemplate tx;
 
-    public TransactionalPolicy(PlatformTransactionManager txm) {
-
-        this.tx = new TransactionTemplate(txm);
-
-    }
 
     public <T> T inTx(SupplierEx<T> supplier) {
 
