@@ -1,4 +1,4 @@
-package br.com.orbity.ms_catalog_service_v1.config;
+package br.com.orbity.ms_cart_service_v1.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
@@ -13,19 +13,18 @@ import org.springframework.context.annotation.Configuration;
 public class OpenApiConfig {
 
     @Bean
-    public OpenAPI catalogOpenAPI() {
+    public OpenAPI cartOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Catalog Service API")
+                        .title("Cart Service API")
                         .version("v1")
-                        .description("CRUD de produtos e variantes com integração Kafka para eventos de catálogo.")
+                        .description("CRUD de carrinho (Redis como primary store, TTL por item/chave) com integração Kafka opcional.")
                         .contact(new Contact()
                                 .name("Matheus Silva Lemes")
                                 .email("matheuslemesmsl@gmail.com")
-
                         ))
-                .addTagsItem(new Tag().name("Products").description("Gerenciamento de produtos"))
-                .addTagsItem(new Tag().name("Variants").description("Gerenciamento de variantes de produtos"))
+                .addTagsItem(new Tag().name("Cart").description("Gerenciamento do carrinho"))
+                .addTagsItem(new Tag().name("Items").description("Gerenciamento de itens do carrinho"))
                 .addTagsItem(new Tag().name("Health").description("Monitoramento e status da API"))
 
                 .components(new io.swagger.v3.oas.models.Components()
@@ -36,6 +35,7 @@ public class OpenApiConfig {
                                 .bearerFormat("JWT")
                                 .description("Autenticação via token JWT")))
                 .addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
+
     }
 
 }
