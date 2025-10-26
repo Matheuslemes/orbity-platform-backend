@@ -1,1 +1,106 @@
-spring.application.name=ms-cart-service-v1
+server:
+  port: 8086
+
+spring:
+  application:
+    name: ms-cart
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      # se tiver senha no Redis, exporte REDIS_PASSWORD
+      password: ${REDIS_PASSWORD:}
+
+  cache:
+    # opcional: se você habilitar um cache de totais/snapshots no CacheConfig
+    type: redis
+    redis:
+      time-to-live: 10m
+      cache-null-values: false
+
+  kafka:
+    # local: 127.0.0.1:9094 | container: kafka-infra:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:127.0.0.1:9094}
+    admin:
+      auto-create: true
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: ms-cart
+      # se for consumir algo futuramente:
+      # properties:
+      #   spring.json.trusted.packages: "*"
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    tryItOutEnabled: true
+
+logging:
+  level:
+    org.springframework.kafka: info
+    org.springframework.data.redis: info
+
+# ===== Propriedades específicas do ms-cart =====
+cart:
+  key-prefix: ${CART_KEY_PREFIX:cart}
+  ttl:
+    seconds: ${CART_TTL_SECONDS:86400}        # 24h
+  messaging:
+    enabled: ${CART_MESSAGING_ENABLED:false}  # true para publicar eventos no Kafka
+    topic-updated: ${CART_UPDATED_TOPIC:cart.updated.v1}
+    topic-merged: ${CART_MERGED_TOPIC:cart.merged.v1}
+    topic-checked-out: ${CART_CHECKEDOUT_TOPIC:cart.checkedout.v1}
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+
+# ===== Mapa de tópicos no padrão orbity.* (opcional) =====
+# Útil se você tiver um TopicAdminConfig genérico que lê esse bloco.
+orbity:
+  kafka:
+    producer:
+      topic-key: cart-updated
+      topics:
+        cart-updated:
+          name: ${CART_UPDATED_TOPIC:cart.updated.v1}
+          partitions: 1
+          replicas: 1
+        cart-merged:
+          name: ${CART_MERGED_TOPIC:cart.merged.v1}
+          partitions: 1
+          replicas: 1
+        cart-checkedout:
+          name: ${CART_CHECKEDOUT_TOPIC:cart.checkedout.v1}
+          partitions: 1
+          replicas: 1
+
+# ===== Suporte ao TopicAdminConfig simples =====
+app:
+  kafka:
+    topics:
+      auto-create: ${TOPIC_AUTO_CREATE:true}
+      cart-updated: ${CART_UPDATED_TOPIC:cart.updated.v1}
+      cart-merged: ${CART_MERGED_TOPIC:cart.merged.v1}
+      cart-checkedout: ${CART_CHECKEDOUT_TOPIC:cart.checkedout.v1}
+
+# PROFILE: secured  → habilita OAuth2 Resource Server (Keycloak)
+# Ative com:  -Dspring.profiles.active=secured
+---
+spring:
+  config:
+    activate:
+      on-profile: secured
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OAUTH2_ISSUER_URI:http://localhost:8085/realms/master}
+          # jwk-set-uri: ${OAUTH2_JWKS_URI:http://localhost:8085/realms/master/protocol/openid-connect/certs}

@@ -1,1 +1,214 @@
-spring.application.name=api-gateway
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+
+  # Redis (opcional) – usado pelo RequestRateLimiter e, se quiser, por Spring Session
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      # comente/ajuste se estiver sem Redis; o RateLimit cai para o NoOp definido no código
+      timeout: 2s
+
+  # WebFlux + Spring Cloud Gateway
+  cloud:
+    gateway:
+      # CORS global (ajuste para o seu domínio front)
+      globalcors:
+        corsConfigurations:
+          "[/**]":
+            allowedOrigins: ${CORS_ALLOW_ORIGINS:http://localhost:3000,http://localhost:5173}
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            allowCredentials: true
+      # filtros aplicados a TODAS as rotas
+      default-filters:
+        # garante um X-Correlation-Id (caso o filtro Java não faça)
+        - AddResponseHeader=X-Gateway,api-gateway
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin RETAIN_UNIQUE
+      # Rotas para os ms-* (diagrama)
+      routes:
+        # Catalog
+        - id: ms-catalog
+          uri: ${CATALOG_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/catalog/**
+          filters:
+            - StripPrefix=1
+            - name: CircuitBreaker
+              args:
+                name: catalog
+                fallbackUri: forward:/__fallback
+            - name: RequestRateLimiter
+              args:
+                # se houver RedisRateLimiter bean, usa; senão, seu NoOp do código é aplicado
+                redis-rate-limiter.replenishRate: ${RL_CATALOG_REPLENISH:20}
+                redis-rate-limiter.burstCapacity: ${RL_CATALOG_BURST:40}
+                key-resolver: "#{@ipAddressKeyResolver}"
+
+        # Media
+        - id: ms-media
+          uri: ${MEDIA_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/media/**
+          filters:
+            - StripPrefix=1
+            - name: CircuitBreaker
+              args:
+                name: media
+                fallbackUri: forward:/__fallback
+
+        # Inventory
+        - id: ms-inventory
+          uri: ${INVENTORY_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/inventory/**
+          filters:
+            - StripPrefix=1
+            - name: CircuitBreaker
+              args:
+                name: inventory
+                fallbackUri: forward:/__fallback
+
+        # Search
+        - id: ms-search
+          uri: ${SEARCH_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/search/**
+          filters:
+            - StripPrefix=1
+            - name: CircuitBreaker
+              args:
+                name: search
+                fallbackUri: forward:/__fallback
+
+        # Cart
+        - id: ms-cart
+          uri: ${CART_URL:http://localhost:8087}
+          predicates:
+            - Path=/api/cart/**
+          filters:
+            - StripPrefix=1
+            - name: CircuitBreaker
+              args:
+                name: cart
+                fallbackUri: forward:/__fallback
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: ${RL_CART_REPLENISH:30}
+                redis-rate-limiter.burstCapacity: ${RL_CART_BURST:60}
+                key-resolver: "#{@principalNameOrIpResolver}"
+
+        # Orders
+        - id: ms-orders
+          uri: ${ORDERS_URL:http://localhost:8088}
+          predicates:
+            - Path=/api/orders/**
+          filters:
+            - StripPrefix=1
+            - name: CircuitBreaker
+              args:
+                name: orders
+                fallbackUri: forward:/__fallback
+
+        # Checkout
+        - id: ms-checkout
+          uri: ${CHECKOUT_URL:http://localhost:8089}
+          predicates:
+            - Path=/api/checkout/**
+          filters:
+            - StripPrefix=1
+            - name: CircuitBreaker
+              args:
+                name: checkout
+                fallbackUri: forward:/__fallback
+            # em perfil secured, o TokenRelay é aplicado no SecurityConfig; aqui não é obrigatório
+
+        # Customer
+        - id: ms-customer
+          uri: ${CUSTOMER_URL:http://localhost:8090}
+          predicates:
+            - Path=/api/customer/**
+          filters:
+            - StripPrefix=1
+            - name: CircuitBreaker
+              args:
+                name: customer
+                fallbackUri: forward:/__fallback
+
+        # Pricing (usado pelo cart para revalidar preços)
+        - id: ms-pricing
+          uri: ${PRICING_URL:http://localhost:8091}
+          predicates:
+            - Path=/api/pricing/**
+          filters:
+            - StripPrefix=1
+            - name: CircuitBreaker
+              args:
+                name: pricing
+                fallbackUri: forward:/__fallback
+
+# SpringDoc opcional (se você expôs um endpoint simples de health/fallback)
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    tryItOutEnabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,env,loggers,threaddump
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    org.springframework.security: INFO
+    reactor.netty: WARN
+
+# ---------- Perfil SECURED (habilita OIDC / JWT Resource Server + Token Relay) ----------
+---
+spring:
+  config:
+    activate:
+      on-profile: secured
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # use UM dos dois (issuer-uri preferível)
+          issuer-uri: ${OAUTH2_ISSUER_URI:http://localhost:8085/realms/master}
+          # jwk-set-uri: ${OAUTH2_JWKS_URI:http://localhost:8085/realms/master/protocol/openid-connect/certs}
+      client:
+        provider:
+          keycloak:
+            issuer-uri: ${OAUTH2_ISSUER_URI:http://localhost:8085/realms/master}
+        registration:
+          frontend:
+            provider: keycloak
+            client-id: ${OAUTH2_CLIENT_ID:frontend}
+            client-secret: ${OAUTH2_CLIENT_SECRET:changeme}
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope:
+              - openid
+              - profile
+              - email
+
+  # se quiser manter rate limit também no secured
+  cloud:
+    gateway:
+      default-filters:
+        - TokenRelay
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin RETAIN_UNIQUE

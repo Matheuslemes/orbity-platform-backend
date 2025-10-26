@@ -4,4 +4,5 @@ public interface InventoryLookupPortOut {
 
     boolean isAvailable(String sku, int requiredQty);
 
+    Integer availableQuantity(String sku);
 }
