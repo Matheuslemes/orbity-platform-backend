@@ -1,5 +1,5 @@
 server:
-  port: 8085
+  port: 8090
 
 spring:
   application:
@@ -31,6 +31,7 @@ spring:
 
   cache:
     # defina para "redis" se quiser habilitar cache (RedisConfig é condicional)
+    # EN: set to "redis" if you want to enable caching (RedisConfig is conditional)
     type: ${SPRING_CACHE_TYPE:none}
     redis:
       time-to-live: 10m
@@ -44,12 +45,15 @@ spring:
       group-id: ${KAFKA_GROUP_ID:ms-customer}
       enable-auto-commit: false
       # properties:
+      # EN: properties:
       #   spring.json.trusted.packages: "*"
+      #   EN: spring.json.trusted.packages: "*"
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 # mapas de tópicos (prefixo 'orbity.kafka.*')
+# EN: topic maps (prefix 'orbity.kafka.*')
 orbity:
   kafka:
     producer:
@@ -61,6 +65,7 @@ orbity:
           replicas: 1
     consumer:
       # exemplo opcional de consumer (caso use eventos do IdP)
+      # EN: optional example consumer (if you use IdP events)
       topic-key: idp-events
       topics:
         idp-events:
@@ -68,6 +73,7 @@ orbity:
           concurrency: ${IDP_EVENTS_CONCURRENCY:1}
 
 # suporte ao TopicAdminConfig (auto-criar tópicos via propriedade simples)
+# EN: support for TopicAdminConfig (auto-create topics via simple property)
 app:
   kafka:
     topics:
@@ -76,9 +82,11 @@ app:
       idp-events: ${IDP_EVENTS_TOPIC:idp.user.events.v1}
 
 # propriedades específicas do customer
+# EN: customer-specific properties
 customer:
   outbox:
     # intervalo do scheduler OutboxPublisherJob
+    # EN: interval for the OutboxPublisherJob scheduler
     poll-interval-ms: ${OUTBOX_POLL_INTERVAL_MS:1500}
 
 springdoc:
@@ -98,7 +106,9 @@ logging:
     br.com.orbity.customer: info
 
 # PROFILE: secured → habilita OAuth2 Resource Server (Keycloak)
+# EN: PROFILE: secured → enables OAuth2 Resource Server (Keycloak)
 # Ative com: -Dspring.profiles.active=secured
+# EN: Enable with: -Dspring.profiles.active=secured
 ---
 spring:
   config:
@@ -110,3 +120,4 @@ spring:
         jwt:
           issuer-uri: ${OAUTH2_ISSUER_URI:http://localhost:8085/realms/master}
           # jwk-set-uri: ${OAUTH2_JWKS_URI:http://localhost:8085/realms/master/protocol/openid-connect/certs}
+          # EN: jwk-set-uri: ${OAUTH2_JWKS_URI:http://localhost:8085/realms/master/protocol/openid-connect/certs}

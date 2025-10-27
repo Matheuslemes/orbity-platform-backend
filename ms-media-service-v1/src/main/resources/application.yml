@@ -1,36 +1,40 @@
 server:
-  port: 8083
+  port: 8082
 
 spring:
   application:
     name: ms-media
 
-  # --- MongoDB ---
+  # MongoDB
   data:
     mongodb:
       uri: ${MONGO_URI:mongodb://localhost:27017/media}
       auto-index-creation: true
       uuid-representation: standard
 
-    # --- Redis (cache e utilidades) ---
+    # Redis (cache e utilidades)
+    # EN: Redis (cache and utilities)
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
 
-  # --- Multipart (upload limites) ---
+  #  Multipart (upload limites)
+  # EN: Multipart (upload limits)
   servlet:
     multipart:
       max-file-size: ${MEDIA_MAX_FILE_SIZE:20MB}
       max-request-size: ${MEDIA_MAX_REQUEST_SIZE:20MB}
 
-  # --- Cache (Redis) ---
+  # Cache (Redis)
+  # EN: Cache (Redis)
   cache:
     type: redis
     redis:
       time-to-live: 5m
       cache-null-values: false
 
-  # --- Kafka ---
+  # Kafka
+  # EN: Kafka
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:127.0.0.1:9094}
     admin:
@@ -39,12 +43,15 @@ spring:
       group-id: ${KAFKA_GROUP_ID:ms-media}
       enable-auto-commit: false
       # properties:
+      # EN: properties:
       #   spring.json.trusted.packages: "*"
+      #   EN: spring.json.trusted.packages: "*"
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 # mapas de tópicos (mantém prefixo 'orbity.kafka.*' como no projeto)
+# EN: topic maps (keeps the 'orbity.kafka.*' prefix as in the project)
 orbity:
   kafka:
     producer:
@@ -55,6 +62,7 @@ orbity:
           partitions: 1
           replicas: 1
     # (opcional) consumidores deste serviço
+    # EN: (optional) consumers of this service
     consumer:
       topic-key: media-commands
       topics:
@@ -63,6 +71,7 @@ orbity:
           concurrency: ${MEDIA_COMMANDS_CONCURRENCY:1}
 
 # suporte ao TopicAdminConfig (auto-criar tópicos via propriedade simples)
+# EN: support for TopicAdminConfig (auto-create topics via simple property)
 app:
   kafka:
     topics:
@@ -71,9 +80,11 @@ app:
       media-commands: ${MEDIA_COMMANDS_TOPIC:media.commands.v1}
 
 # propriedades específicas do ms-media
+# EN: ms-media specific properties
 media:
   storage:
     # local | minio
+    # EN: local | minio
     type: ${MEDIA_STORAGE_TYPE:local}
     local:
       base-path: ${MEDIA_BASE_PATH:./.media}
@@ -87,6 +98,7 @@ media:
       secure: ${MINIO_SECURE:false}
   cache:
     # TTL curto para metadados/URLs pré-assinadas
+    # EN: short TTL for metadata/pre-signed URLs
     metadata-ttl: ${MEDIA_METADATA_TTL:300s}
     url-ttl: ${MEDIA_URL_TTL:300s}
 
@@ -107,7 +119,9 @@ logging:
     br.com.orbity.media: info
 
 # PROFILE: secured → habilita OAuth2 Resource Server (Keycloak)
+# EN: PROFILE: secured → enables OAuth2 Resource Server (Keycloak)
 # Ative com: -Dspring.profiles.active=secured
+# EN: Enable with: -Dspring.profiles.active=secured
 ---
 spring:
   config:
@@ -119,3 +133,4 @@ spring:
         jwt:
           issuer-uri: ${OAUTH2_ISSUER_URI:http://localhost:8085/realms/master}
           # jwk-set-uri: ${OAUTH2_JWKS_URI:http://localhost:8085/realms/master/protocol/openid-connect/certs}
+          # EN: jwk-set-uri: ${OAUTH2_JWKS_URI:http://localhost:8085/realms/master/protocol/openid-connect/certs}

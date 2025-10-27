@@ -1,7 +1,7 @@
 package br.com.orbity.ms_cart_service_v1.config;
 
+import br.com.orbity.ms_cart_service_v1.adapters.out.http.NoOpCartEventPublisher;
 import br.com.orbity.ms_cart_service_v1.adapters.out.http.NoOpInventoryLookupAdapter;
-import br.com.orbity.ms_cart_service_v1.adapters.out.messaging.NoOpCartEventPublisher;
 import br.com.orbity.ms_cart_service_v1.application.policy.IdempotencyPolicy;
 import br.com.orbity.ms_cart_service_v1.domain.model.PriceSnapshot;
 import br.com.orbity.ms_cart_service_v1.domain.port.out.CartEventPublisherPortOut;

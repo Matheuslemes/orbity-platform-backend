@@ -23,12 +23,15 @@ spring:
     consumer:
       group-id: ${KAFKA_GROUP_ID:ms-search}
       # auto-offset-reset: latest
+      # EN: auto-offset-reset: latest
       # enable-auto-commit: false
+      # EN: enable-auto-commit: false
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 # mapas de tópicos (mantém prefixo 'search.kafka.*' para ficar alinhado ao padrão)
+# EN: topic maps (keeps the 'search.kafka.*' prefix to stay aligned with the convention)
 search:
   kafka:
     producer:
@@ -40,6 +43,7 @@ search:
           replicas: 1
     consumer:
       # três consumidores: produto mudou, preço mudou, estoque mudou
+      # EN: three consumers: product changed, price changed, stock events
       topics:
         product-changed:
           name: ${PRODUCT_CHANGED_TOPIC:catalog.product.changed.v1}
@@ -52,6 +56,7 @@ search:
           concurrency: ${STOCK_EVENTS_CONCURRENCY:1}
 
 # OpenSearch (client high-level)
+# EN: OpenSearch (high-level client)
 opensearch:
   host: ${OPENSEARCH_HOST:localhost}
   port: ${OPENSEARCH_PORT:9200}
@@ -78,7 +83,9 @@ logging:
     br.com.orbity.ms_search_service: info
 
 # PROFILE: secured → habilita OAuth2 Resource Server (Keycloak, etc.)
+# EN: PROFILE: secured → enables OAuth2 Resource Server (Keycloak, etc.)
 # Ative com: -Dspring.profiles.active=secured
+# EN: Enable with: -Dspring.profiles.active=secured
 ---
 spring:
   config:
@@ -90,3 +97,4 @@ spring:
         jwt:
           issuer-uri: ${OAUTH2_ISSUER_URI:http://localhost:8085/realms/master}
           # jwk-set-uri: ${OAUTH2_JWKS_URI:http://localhost:8085/realms/master/protocol/openid-connect/certs}
+          # EN: jwk-set-uri: ${OAUTH2_JWKS_URI:http://localhost:8085/realms/master/protocol/openid-connect/certs}

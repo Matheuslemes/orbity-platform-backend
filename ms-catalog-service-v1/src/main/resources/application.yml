@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8081
 
 spring:
   application:
@@ -8,6 +8,7 @@ spring:
   data:
     mongodb:
       # Ex.: mongodb://mongo:27017/catalog (docker) | mongodb://localhost:27017/catalog (local)
+      # EN: Example: mongodb://mongo:27017/catalog (docker) | mongodb://localhost:27017/catalog (local)
       uri: ${MONGO_URI:mongodb://localhost:27017/catalog}
       auto-index-creation: true
       uuid-representation: standard
@@ -20,22 +21,29 @@ spring:
     type: redis
     redis:
       # TTL padrão para caches que não tiverem TTL específico no CacheConfig
+      # EN: Default TTL for caches that don’t have a specific TTL in CacheConfig
       time-to-live: 10m
       cache-null-values: false
 
   kafka:
     # host: 127.0.0.1:9094 ; container: kafka-infra:9092
+    # EN: host: 127.0.0.1:9094 ; container: kafka-infra:9092
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:127.0.0.1:9094}
     admin:
       auto-create: true
     consumer:
       group-id: ms-catalog
       # auto-offset-reset: latest
+      # EN: auto-offset-reset: latest
       # Se usar JsonDeserializer:
+      # EN: If using JsonDeserializer:
       # properties:
+      # EN: properties:
       #   spring.json.trusted.packages: "*"
+      #   EN: spring.json.trusted.packages: "*"
 
 # mapas de tópicos (mantém prefixo 'orbity.kafka.*')
+# EN: topic maps (keeps 'orbity.kafka.*' prefix)
 orbity:
   kafka:
     producer:
@@ -53,6 +61,7 @@ orbity:
           concurrency: 1
 
 # suporte ao TopicAdminConfig (auto-criar tópico via propriedade simples)
+# EN: support for TopicAdminConfig (auto-create topic via simple property)
 app:
   kafka:
     topics:
@@ -75,7 +84,9 @@ logging:
     org.mongodb.driver: info
 
 # PROFILE: secured  → habilita OAuth2 Resource Server (Keycloak)
+# EN: PROFILE: secured → enables OAuth2 Resource Server (Keycloak)
 # Ative com:  -Dspring.profiles.active=secured
+# EN: Enable with: -Dspring.profiles.active=secured
 ---
 spring:
   config:
@@ -86,5 +97,7 @@ spring:
       resourceserver:
         jwt:
           # use UM dos dois (preferir issuer-uri). Default aponta para KC em 8085.
+          # EN: use ONE of the two (prefer issuer-uri). Default points to KC on 8085.
           issuer-uri: ${OAUTH2_ISSUER_URI:http://localhost:8085/realms/master}
           # jwk-set-uri: ${OAUTH2_JWKS_URI:http://localhost:8085/realms/master/protocol/openid-connect/certs}
+          # EN: jwk-set-uri: ${OAUTH2_JWKS_URI:http://localhost:8085/realms/master/protocol/openid-connect/certs}

@@ -1,5 +1,5 @@
 server:
-  port: 8087
+  port: 8088
 
 spring:
   application:
@@ -33,6 +33,7 @@ spring:
     type: redis
     redis:
       time-to-live: 5m         # TTL curto p/ listagens ("Meus Pedidos")
+      # EN: short TTL for listings ("My Orders")
       cache-null-values: false
 
   kafka:
@@ -47,10 +48,12 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 # mapas de tópicos (mantém prefixo de domínio do serviço)
+# EN: topic maps (keeps the service domain prefix)
 orders:
   kafka:
     producer:
       topic-key: order-events            # usado pelo publisher (status-updated/canceled…)
+      # EN: used by the publisher (status-updated/canceled…)
       topics:
         order-events:
           name: ${ORDER_EVENTS_TOPIC:orders.status.events.v1}
@@ -58,6 +61,7 @@ orders:
           replicas: 1
     consumer:
       topic-key: order-created           # usado pelo consumer que persiste pedidos
+      # EN: used by the consumer that persists orders
       topics:
         order-created:
           name: ${ORDER_CREATED_TOPIC:checkout.order.created.v1}
@@ -66,9 +70,12 @@ orders:
   flyway:
     enabled: true
     clean-disabled: true        # evita 'clean' acidental em prod
+    # EN: prevents accidental 'clean' in production
     # baseline-on-migrate: true  # habilite se precisar baselinar DB já existente
+    # EN: enable if you need to baseline an existing DB
 
 # (Opcional) suporte a criação simples via TopicAdminConfig, se você usar esse componente
+# EN: (Optional) simple creation support via TopicAdminConfig, if you use this component
 app:
   kafka:
     topics:
@@ -93,7 +100,9 @@ logging:
     br.com.catalog.orders: info
 
 # PROFILE: secured → habilita OAuth2 Resource Server (Keycloak, etc.)
+# EN: PROFILE: secured → enables OAuth2 Resource Server (Keycloak, etc.)
 # Ative com: -Dspring.profiles.active=secured
+# EN: Enable with: -Dspring.profiles.active=secured
 ---
 spring:
   config:
@@ -105,3 +114,4 @@ spring:
         jwt:
           issuer-uri: ${OAUTH2_ISSUER_URI:http://localhost:8085/realms/master}
           # jwk-set-uri: ${OAUTH2_JWKS_URI:http://localhost:8085/realms/master/protocol/openid-connect/certs}
+          # EN: jwk-set-uri: ${OAUTH2_JWKS_URI:http://localhost:8085/realms/master/protocol/openid-connect/certs}

@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 8091
 
 spring:
   application:
@@ -39,8 +39,10 @@ spring:
     consumer:
       group-id: ms-pricing
       # auto-offset-reset: latest
+      # EN: auto-offset-reset: latest
 
 # mapas de tópicos (mantém prefixo 'pricing.kafka.*')
+# EN: topic maps (keeps the 'pricing.kafka.*' prefix)
 pricing:
   kafka:
     producer:
@@ -60,7 +62,9 @@ pricing:
   flyway:
     enabled: true
     clean-disabled: true        # evita 'clean' acidental em prod
+    # EN: prevents accidental 'clean' in production
     # baseline-on-migrate: true  # habilite se precisar baselinar DB já existente
+    # EN: baseline-on-migrate: true  # enable if you need to baseline an existing DB
 
 springdoc:
   api-docs:
@@ -78,7 +82,9 @@ logging:
     org.postgresql: info
 
 # PROFILE: secured → habilita OAuth2 Resource Server (Keycloak, etc.)
+# EN: PROFILE: secured → enables OAuth2 Resource Server (Keycloak, etc.)
 # Ative com: -Dspring.profiles.active=secured
+# EN: Enable with: -Dspring.profiles.active=secured
 ---
 spring:
   config:
@@ -90,3 +96,4 @@ spring:
         jwt:
           issuer-uri: ${OAUTH2_ISSUER_URI:http://localhost:8085/realms/master}
           # jwk-set-uri: ${OAUTH2_JWKS_URI:http://localhost:8085/realms/master/protocol/openid-connect/certs}
+          # EN: jwk-set-uri: ${OAUTH2_JWKS_URI:http://localhost:8085/realms/master/protocol/openid-connect/certs}

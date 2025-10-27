@@ -1,11 +1,12 @@
 server:
-  port: 8087
+  port: 8089
 
 spring:
   application:
     name: ms-checkout
 
   # Se optar por manter estado da SAGA em PostgreSQL, habilite o datasource/JPA:
+  # EN: If you choose to keep SAGA state in PostgreSQL, enable the datasource/JPA:
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/checkout}
     username: ${DB_USER:checkout}
@@ -22,35 +23,46 @@ spring:
     show-sql: false
 
   # Se optar por correlação/idempotência em Redis (stateless)
+  # EN: If you choose correlation/idempotency using Redis (stateless)
   data:
     redis:
       enabled: false
-#      host: ${REDIS_HOST:localhost}
-#      port: ${REDIS_PORT:6379}
+  #      host: ${REDIS_HOST:localhost}
+  #      EN: host: ${REDIS_HOST:localhost}
+  #      port: ${REDIS_PORT:6379}
+  #      EN: port: ${REDIS_PORT:6379}
 
   cache:
     type: redis
     redis:
       # TTL padrão para caches que não tiverem TTL específico no CacheConfig
+      # EN: Default TTL for caches that don’t have a specific TTL in CacheConfig
       time-to-live: 10m
       cache-null-values: false
 
   kafka:
     # host: 127.0.0.1:9094 ; container: kafka:9092
+    # EN: host: 127.0.0.1:9094 ; container: kafka:9092
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:127.0.0.1:9094}
     admin:
       auto-create: true
     consumer:
       group-id: ms-checkout
       # auto-offset-reset: latest
+      # EN: auto-offset-reset: latest
       # Para JsonDeserializer (se usar):
+      # EN: For JsonDeserializer (if used):
       # properties:
+      # EN: properties:
       #   spring.json.trusted.packages: "*"
+      #   EN: spring.json.trusted.packages: "*"
 
 # mapas de tópicos (mantém prefixo 'orbity.kafka.*')
+# EN: topic maps (keeps the 'orbity.kafka.*' prefix)
 orbity:
   kafka:
     # PRODUCER: eventos que o checkout publica
+    # EN: PRODUCER: events published by checkout
     producer:
       topic-key: checkout-events
       topics:
@@ -84,17 +96,21 @@ orbity:
           replicas: 1
 
     # CONSUMER: eventos que o checkout consome (gateways/estoque)
+    # EN: CONSUMER: events that checkout consumes (gateways/inventory)
     consumer:
       topic-key: integration-events
       topics:
         payment-events:
           name: ${PAYMENT_EVENTS_TOPIC:payment.events.v1}     # ex.: authorized/denied
+          # EN: e.g., authorized/denied
           concurrency: 1
         inventory-events:
           name: ${INVENTORY_EVENTS_TOPIC:inventory.events.v1} # ex.: reserved/denied
+          # EN: e.g., reserved/denied
           concurrency: 1
 
 # Suporte ao TopicAdminConfig (auto-criar tópico via propriedade simples)
+# EN: Support for TopicAdminConfig (auto-create topic via simple property)
 app:
   kafka:
     topics:
@@ -110,6 +126,7 @@ app:
       inventory-events: ${INVENTORY_EVENTS_TOPIC:inventory.events.v1}
 
 # Flyway (se usar Postgres para estado da SAGA)
+# EN: Flyway (if using Postgres to store SAGA state)
 checkout:
   profile:
     mode: postgres-saga
@@ -117,6 +134,7 @@ checkout:
     enabled: true
     clean-disabled: true
     # baseline-on-migrate: true
+    # EN: baseline-on-migrate: true
 
 springdoc:
   api-docs:
@@ -134,7 +152,9 @@ logging:
     org.postgresql: info
 
 # PROFILE: secured  → habilita OAuth2 Resource Server (Keycloak, etc.)
+# EN: PROFILE: secured → enables OAuth2 Resource Server (Keycloak, etc.)
 # Ative com:  -Dspring.profiles.active=secured
+# EN: Enable with: -Dspring.profiles.active=secured
 ---
 spring:
   config:
@@ -146,3 +166,4 @@ spring:
         jwt:
           issuer-uri: ${OAUTH2_ISSUER_URI:http://localhost:8085/realms/master}
           # jwk-set-uri: ${OAUTH2_JWKS_URI:http://localhost:8085/realms/master/protocol/openid-connect/certs}
+          # EN: jwk-set-uri: ${OAUTH2_JWKS_URI:http://localhost:8085/realms/master/protocol/openid-connect/certs}
