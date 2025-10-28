@@ -41,12 +41,6 @@ public class BeanConfig {
     }
 
     @Bean
-    public CartEventPublisherPortOut cartEventPublisherPortOut() {
-        return new NoOpCartEventPublisher();
-
-    }
-
-    @Bean
     public IdempotencyPolicy idempotencyPolicy() {
         return new IdempotencyPolicy();
     }

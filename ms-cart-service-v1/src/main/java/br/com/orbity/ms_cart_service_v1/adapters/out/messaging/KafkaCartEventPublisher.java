@@ -25,7 +25,7 @@ public class KafkaCartEventPublisher implements CartEventPublisherPortOut {
     private static final String SCHEMA = "cart-event-payload.v1";
     private static final byte[] APP_JSON = "application/json".getBytes(StandardCharsets.UTF_8);
 
-    private final KafkaTemplate<String, Payload> kafka;
+    private final KafkaTemplate<String, Object> kafka; // agora <String, Object> (JsonSerializer)
     private final KafkaProperties props;
 
     @Override
@@ -45,17 +45,10 @@ public class KafkaCartEventPublisher implements CartEventPublisherPortOut {
         send(topic, to, meta, payload);
     }
 
-    @Override
-    public void publishCheckedOut(String cartId) {
-        final String topic = nonEmpty(props.getTopics().getCheckedOut(), "cart.checkedout.v1");
-        final long ts = System.currentTimeMillis();
-        final Payload payload = new Payload("CHECKED_OUT", cartId, null, null, ts);
-        send(topic, cartId, "checkedout", payload);
-    }
 
     private void send(String topic, String key, String reasonOrMeta, Payload payload) {
         final String k = requireKey(key);
-        final ProducerRecord<String, Payload> record = buildRecord(topic, k, reasonOrMeta, payload);
+        final ProducerRecord<String, Object> record = buildRecord(topic, k, reasonOrMeta, payload);
 
         kafka.send(record).whenComplete((result, ex) -> {
             if (ex != null) {
@@ -63,15 +56,14 @@ public class KafkaCartEventPublisher implements CartEventPublisherPortOut {
                         topic, k, payload.type(), ex.getMessage(), ex);
             } else if (result != null) {
                 var md = result.getRecordMetadata();
-                log.debug("[KafkaCartEventPublisher] sent topic={} key={} type={} partition={} offset={}",
+                log.info("[KafkaCartEventPublisher] sent topic={} key={} type={} partition={} offset={}",
                         md.topic(), k, payload.type(), md.partition(), md.offset());
             }
         });
     }
 
-
-    private ProducerRecord<String, Payload> buildRecord(String topic, String key, String reasonOrMeta, Payload payload) {
-        ProducerRecord<String, Payload> rec = new ProducerRecord<>(topic, key, payload);
+    private ProducerRecord<String, Object> buildRecord(String topic, String key, String reasonOrMeta, Payload payload) {
+        ProducerRecord<String, Object> rec = new ProducerRecord<>(topic, key, payload);
 
         putHeader(rec, "event-type", payload.type());
         putHeader(rec, "event-reason", reasonOrMeta);
@@ -104,13 +96,11 @@ public class KafkaCartEventPublisher implements CartEventPublisherPortOut {
 
     private String requireKey(String key) {
         String k = Objects.toString(key, "").trim();
-        if (k.isBlank()) {
-            throw new IllegalArgumentException("Kafka key (cartId) is required");
-        }
+        if (k.isBlank()) throw new IllegalArgumentException("Kafka key (cartId) is required");
         return k;
     }
 
-
+    /** Payload enxuta e estável. */
     public record Payload(
             String type,
             String cartId,
@@ -118,5 +108,4 @@ public class KafkaCartEventPublisher implements CartEventPublisherPortOut {
             String meta,
             long tsEpochMs
     ) { }
-
 }

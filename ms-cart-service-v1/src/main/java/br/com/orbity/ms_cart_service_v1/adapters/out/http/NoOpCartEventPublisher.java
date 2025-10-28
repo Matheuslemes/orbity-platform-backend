@@ -33,8 +33,4 @@ public class NoOpCartEventPublisher implements CartEventPublisherPortOut {
         }
     }
 
-    @Override
-    public void publishCheckedOut(String cartId) {
-        log.info("[NoOp] cart.checkedout - cartId={}", cartId);
-    }
 }

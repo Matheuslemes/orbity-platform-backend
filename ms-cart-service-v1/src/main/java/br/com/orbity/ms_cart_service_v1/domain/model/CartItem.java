@@ -2,10 +2,6 @@ package br.com.orbity.ms_cart_service_v1.domain.model;
 
 import lombok.*;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.Optional;
-
 @Getter
 @Setter
 @NoArgsConstructor

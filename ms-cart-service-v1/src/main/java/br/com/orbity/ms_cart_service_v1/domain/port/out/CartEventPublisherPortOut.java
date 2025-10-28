@@ -8,6 +8,4 @@ public interface CartEventPublisherPortOut {
 
     void publishMerged(String from, String to, Cart merged);
 
-    void publishCheckedOut(String cartId);
-
 }

@@ -21,24 +21,6 @@ spring:
       time-to-live: 10m
       cache-null-values: false
 
-  kafka:
-    # local: 127.0.0.1:9094 | container: kafka-infra:9092
-    # EN: local: 127.0.0.1:9094 | container: kafka-infra:9092
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:127.0.0.1:9094}
-    admin:
-      auto-create: true
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-    consumer:
-      group-id: ms-cart
-      # se for consumir algo futuramente:
-      # EN: if you plan to consume something in the future:
-      # properties:
-      # EN: properties:
-      #   spring.json.trusted.packages: "*"
-      #   EN: spring.json.trusted.packages: "*"
-
 springdoc:
   api-docs:
     path: /v3/api-docs
@@ -50,8 +32,8 @@ springdoc:
 
 logging:
   level:
-    org.springframework.kafka: info
     org.springframework.data.redis: info
+    br.com.orbity: info
 
 # ===== Propriedades específicas do ms-cart =====
 # EN: ===== ms-cart specific properties =====
@@ -60,52 +42,61 @@ cart:
   ttl:
     seconds: ${CART_TTL_SECONDS:86400}        # 24h
     # EN: 24 hours
-  messaging:
-    enabled: ${CART_MESSAGING_ENABLED:false}  # true para publicar eventos no Kafka
-    # EN: set to true to publish events to Kafka
-    topic-updated: ${CART_UPDATED_TOPIC:cart.updated.v1}
-    topic-merged: ${CART_MERGED_TOPIC:cart.merged.v1}
-    topic-checked-out: ${CART_CHECKEDOUT_TOPIC:cart.checkedout.v1}
   redis:
     host: ${REDIS_HOST:localhost}
     port: ${REDIS_PORT:6379}
     password: ${REDIS_PASSWORD:}
 
-# ===== Mapa de tópicos no padrão orbity.* (opcional) =====
-# EN: ===== Topic map using the orbity.* convention (optional) =====
-# Útil se você tiver um TopicAdminConfig genérico que lê esse bloco.
-# EN: Useful if you have a generic TopicAdminConfig that reads this block.
-orbity:
+  # ===== Kafka centralizado (Opção B) =====
+  # EN: ===== Centralized Kafka (Option B) =====
   kafka:
-    producer:
-      topic-key: cart-updated
-      topics:
-        cart-updated:
-          name: ${CART_UPDATED_TOPIC:cart.updated.v1}
-          partitions: 1
-          replicas: 1
-        cart-merged:
-          name: ${CART_MERGED_TOPIC:cart.merged.v1}
-          partitions: 1
-          replicas: 1
-        cart-checkedout:
-          name: ${CART_CHECKEDOUT_TOPIC:cart.checkedout.v1}
-          partitions: 1
-          replicas: 1
+    enabled: ${CART_KAFKA_ENABLED:true}   # habilita/desabilita integração Kafka
+    # EN: toggles Kafka integration on/off
 
-# ===== Suporte ao TopicAdminConfig simples =====
-# EN: ===== Support for a simple TopicAdminConfig =====
-app:
-  kafka:
+    # Lista de brokers Kafka (host:port)
+    # EN: list of Kafka brokers (host:port)
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:127.0.0.1:9094}
+
+    # Identidade do cliente
+    # EN: client identity
+    client-id: ${CART_KAFKA_CLIENT_ID:ms-cart}
+
+    admin:
+      # Criação de tópicos no startup (desligue se usar IaC)
+      # EN: create topics on startup (disable if using IaC)
+      auto-create-topics: ${CART_KAFKA_ADMIN_AUTO_CREATE_TOPICS:true}
+      default-partitions: ${CART_KAFKA_ADMIN_DEFAULT_PARTITIONS:1}
+      default-replication-factor: ${CART_KAFKA_ADMIN_DEFAULT_REPLICATION:1}
+
+    producer:
+      # Confiabilidade / performance
+      # EN: reliability / performance
+      acks: ${CART_KAFKA_PRODUCER_ACKS:all}
+      retries: ${CART_KAFKA_PRODUCER_RETRIES:3}
+      batch-size: ${CART_KAFKA_PRODUCER_BATCH_SIZE:16384}
+      linger-ms: ${CART_KAFKA_PRODUCER_LINGER_MS:5}
+      compression-type: ${CART_KAFKA_PRODUCER_COMPRESSION:lz4}
+
+      # Serializers (compatíveis com o KafkaTemplate<String, Object>)
+      # EN: serializers (compatible with KafkaTemplate<String, Object>)
+      key-serializer: ${CART_KAFKA_PRODUCER_KEY_SERIALIZER:org.apache.kafka.common.serialization.StringSerializer}
+      value-serializer: ${CART_KAFKA_PRODUCER_VALUE_SERIALIZER:org.springframework.kafka.support.serializer.JsonSerializer}
+
+      # Hardening JSON / Exactly-once (quando aplicável)
+      # EN: JSON hardening / Exactly-once (when applicable)
+      add-type-headers: ${CART_KAFKA_PRODUCER_JSON_ADD_TYPE_HEADERS:false}
+      idempotence: ${CART_KAFKA_PRODUCER_IDEMPOTENCE:true}
+      max-in-flight-per-conn: ${CART_KAFKA_PRODUCER_MAX_IN_FLIGHT:1}
+      delivery-timeout-ms: ${CART_KAFKA_PRODUCER_DELIVERY_TIMEOUT_MS:120000}
+
     topics:
-      auto-create: ${TOPIC_AUTO_CREATE:true}
-      cart-updated: ${CART_UPDATED_TOPIC:cart.updated.v1}
-      cart-merged: ${CART_MERGED_TOPIC:cart.merged.v1}
-      cart-checkedout: ${CART_CHECKEDOUT_TOPIC:cart.checkedout.v1}
+      # Nomes dos tópicos de eventos do Cart
+      # EN: Cart event topic names
+      updated: ${CART_UPDATED_TOPIC:cart.updated.v1}
+      merged: ${CART_MERGED_TOPIC:cart.merged.v1}
 
 # PROFILE: secured  → habilita OAuth2 Resource Server (Keycloak)
 # EN: PROFILE: secured → enables OAuth2 Resource Server (Keycloak)
-
 # Ative com:  -Dspring.profiles.active=secured
 # EN: Enable with: -Dspring.profiles.active=secured
 ---
