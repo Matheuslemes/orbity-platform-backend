@@ -35,15 +35,13 @@ spring:
       group-id: ms-catalog
       # auto-offset-reset: latest
       # EN: auto-offset-reset: latest
-      # Se usar JsonDeserializer:
-      # EN: If using JsonDeserializer:
       # properties:
       # EN: properties:
       #   spring.json.trusted.packages: "*"
       #   EN: spring.json.trusted.packages: "*"
 
-# mapas de tópicos (mantém prefixo 'orbity.kafka.*')
-# EN: topic maps (keeps 'orbity.kafka.*' prefix)
+# Mapas de tópicos por domínio (fonte única para nomes/concurrency)
+# EN: Domain topic maps (single source of truth for names/concurrency)
 orbity:
   kafka:
     producer:
@@ -51,7 +49,7 @@ orbity:
       topics:
         product-changed:
           name: ${PRODUCT_CHANGED_TOPIC:catalog.product.changed.v1}
-          partitions: 1
+          partitions: 1     # efeito só se houver TopicAdminConfig criando NewTopic
           replicas: 1
     consumer:
       topic-key: product-changed
@@ -59,14 +57,6 @@ orbity:
         product-changed:
           name: ${PRODUCT_CHANGED_TOPIC:catalog.product.changed.v1}
           concurrency: 1
-
-# suporte ao TopicAdminConfig (auto-criar tópico via propriedade simples)
-# EN: support for TopicAdminConfig (auto-create topic via simple property)
-app:
-  kafka:
-    topics:
-      auto-create: ${TOPIC_AUTO_CREATE:true}
-      product-changed: ${PRODUCT_CHANGED_TOPIC:catalog.product.changed.v1}
 
 springdoc:
   api-docs:
@@ -84,9 +74,7 @@ logging:
     org.mongodb.driver: info
 
 # PROFILE: secured  → habilita OAuth2 Resource Server (Keycloak)
-# EN: PROFILE: secured → enables OAuth2 Resource Server (Keycloak)
-# Ative com:  -Dspring.profiles.active=secured
-# EN: Enable with: -Dspring.profiles.active=secured
+# EN: PROFILE: secured → enables OIDC / JWT Resource Server (Keycloak)
 ---
 spring:
   config:

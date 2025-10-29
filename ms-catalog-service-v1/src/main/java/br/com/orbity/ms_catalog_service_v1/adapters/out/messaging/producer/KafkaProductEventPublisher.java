@@ -18,15 +18,16 @@ public class KafkaProductEventPublisher implements ProductEventPublisherPortOut 
 
     private final KafkaTemplate<String, ProductChangePayload> template;
 
-    @Value("${catalog.kafka.producer.topic-key:product-changed}")
-    private String topic;
+    @Value("${orbity.kafka.producer.topics.product-changed.name:catalog.product.changed.v1}")
+    private String topicName;
+
 
     @Override
     public void publishChanged(Product product, Type type) {
 
         ProductChangePayload payload = ProductChangePayload.from(product, type.name());
 
-        template.send(topic, product.id().toString(), payload)
+        template.send(topicName, product.id().toString(), payload)
 
                 .whenComplete((SendResult<String, ProductChangePayload> result, Throwable ex) -> {
                     if (ex != null) {
@@ -49,7 +50,7 @@ public class KafkaProductEventPublisher implements ProductEventPublisherPortOut 
                     } else {
 
                         log.info("[KafkaProductEventPublisher] OK (sem metadata) topic={} key={}",
-                                topic, product.id());
+                                topicName, product.id());
                     }
                 });
     }

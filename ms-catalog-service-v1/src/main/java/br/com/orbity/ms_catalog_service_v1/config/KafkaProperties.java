@@ -13,28 +13,56 @@ public class KafkaProperties {
     private Producer producer = new Producer();
     private Consumer consumer = new Consumer();
 
-    public Producer getProducer() { return producer; }
-    public Consumer getConsumer() { return consumer; }
+    public Producer getProducer() {
+        return producer;
+    }
+
+    public Consumer getConsumer() {
+        return consumer;
+    }
 
     public static class Producer {
 
         private Map<String, ProducerTopic> topics = new LinkedHashMap<>();
-        public Map<String, ProducerTopic> getTopics() { return topics; };
-        public void setTopics(Map<String, ProducerTopic> topics) { this.topics = topics; }
+
+        public Map<String, ProducerTopic> getTopics() {
+            return topics;
+        }
+
+        ;
+
+        public void setTopics(Map<String, ProducerTopic> topics) {
+            this.topics = topics;
+        }
     }
 
     public static class ProducerTopic {
 
         private String name;
-        private String getName() { return name; }
-        public void setName(String name) { this.name = name; }
+
+        private String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
     }
 
     //  Consumer
     public static class Consumer {
 
         private Map<String, ConsumerTopic> topics = new LinkedHashMap<>();
-        public void setTopics(Map<String, ConsumerTopic> topics) { this.topics = topics; }
+
+        public Map<String, ConsumerTopic> getTopics() {
+            return topics;
+        }
+
+        public void setTopics(Map<String, ConsumerTopic> topics) {
+            this.topics = topics;
+        }
+
     }
 
     public static class ConsumerTopic {
@@ -42,10 +70,21 @@ public class KafkaProperties {
         private String name;
         private Integer concurrency = 1;
 
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
-        public Integer getConcurrency() { return concurrency; }
-        public void setConcurrency(Integer concurrency) { this.concurrency = concurrency; }
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public Integer getConcurrency() {
+            return concurrency;
+        }
+
+        public void setConcurrency(Integer concurrency) {
+            this.concurrency = concurrency;
+        }
     }
 
 }

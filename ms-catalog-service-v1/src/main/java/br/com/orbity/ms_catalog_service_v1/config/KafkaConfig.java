@@ -7,6 +7,9 @@ import org.springframework.boot.autoconfigure.kafka.DefaultKafkaProducerFactoryC
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
+import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
 import java.util.HashMap;
@@ -30,4 +33,15 @@ public class KafkaConfig {
 
         };
     }
+
+    @Bean
+    ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory(
+            ConsumerFactory<String, String> cf) {
+        var f = new ConcurrentKafkaListenerContainerFactory<String, String>();
+        f.setConsumerFactory(cf);
+        f.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
+        return f;
+
+    }
+
 }
