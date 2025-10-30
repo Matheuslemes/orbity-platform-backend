@@ -17,15 +17,12 @@ public class KafkaCheckoutEventPublisher implements OrderEventPublisherPortOut {
     @Override
     public void publishOrderCreated(OrderCreatedEvent evt) {
 
-        var topicKey = props.getProducer().getTopicKey();
-        var topicName = props.getProducer().getTopics()
-                .getOrDefault(topicKey, new KafkaProperties.ProducerTopic()).getName();
+        String topic = props.getProducer().getTopics()
+                .getOrDefault("order-created", new KafkaProperties.ProducerTopic())
+                .getName();
 
-        if (topicName == null || topicName.isBlank()) {
-            topicName = "order.created.v1";
-        }
-
-        kafka.send(topicName, evt.checkoutId(), evt);
+        if (topic == null || topic.isBlank()) topic = "orders.created.v1";
+        kafka.send(topic, evt.checkoutId(), evt);
 
     }
 

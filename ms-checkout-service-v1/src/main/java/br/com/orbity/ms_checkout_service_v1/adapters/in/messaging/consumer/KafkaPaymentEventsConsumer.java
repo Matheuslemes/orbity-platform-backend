@@ -13,17 +13,21 @@ public class KafkaPaymentEventsConsumer {
 
     private final CheckoutSagaOrchestrator saga;
 
-    @KafkaListener(topics = "${catalog.kafka.consumer.topics.payment-authorized.name:payment.authorized.v1}",
-            groupId = "${spring.kafka.consumer.group-id:ms-checkout}")
-    public void paymentAuthorized(PaymentAuthorizedEvent evt){
+    @KafkaListener(
+            topics = "${orbity.kafka.consumer.topics.payment-authorized.name}",
+            groupId = "${spring.kafka.consumer.group-id}"
+    )
+    public void paymentAuthorized(PaymentAuthorizedEvent evt) {
 
         saga.handlePaymentAuthorized(evt);
 
     }
 
-    @KafkaListener(topics = "${catalog.kafka.consumer.topics.payment-denied.name:payment.denied.v1}",
-            groupId = "${spring.kafka.consumer.group-id:ms-checkout}")
-    public void paymentDenied(PaymentDeniedEvent evt){
+    @KafkaListener(
+            topics = "${orbity.kafka.consumer.topics.payment-denied.name}",
+            groupId = "${spring.kafka.consumer.group-id}"
+    )
+    public void paymentDenied(PaymentDeniedEvent evt) {
 
         saga.handlePaymentDenied(evt);
 

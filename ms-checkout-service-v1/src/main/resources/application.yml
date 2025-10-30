@@ -45,9 +45,10 @@ spring:
     # EN: host: 127.0.0.1:9094 ; container: kafka:9092
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:127.0.0.1:9094}
     admin:
-      auto-create: true
+      auto-create: true # Dev/CI; em prod use false e IaC
     consumer:
       group-id: ms-checkout
+      auto-offset-reset: latest
       # auto-offset-reset: latest
       # EN: auto-offset-reset: latest
       # Para JsonDeserializer (se usar):
@@ -70,43 +71,53 @@ orbity:
           name: ${CHECKOUT_STARTED_TOPIC:checkout.started.v1}
           partitions: 1
           replicas: 1
-        inventory-reservation-requested:
-          name: ${INVENTORY_RES_REQ_TOPIC:inventory.reservation.requested.v1}
-          partitions: 1
-          replicas: 1
-        order-created:
-          name: ${ORDER_CREATED_TOPIC:orders.created.v1}
-          partitions: 1
-          replicas: 1
-        payment-authorized:
-          name: ${PAYMENT_AUTHORIZED_TOPIC:payment.authorized.v1}
-          partitions: 1
-          replicas: 1
-        payment-denied:
-          name: ${PAYMENT_DENIED_TOPIC:payment.denied.v1}
-          partitions: 1
-          replicas: 1
-        inventory-reservation-confirmed:
-          name: ${INVENTORY_RES_CONFIRMED_TOPIC:inventory.reservation.confirmed.v1}
-          partitions: 1
-          replicas: 1
-        inventory-reservation-denied:
-          name: ${INVENTORY_RES_DENIED_TOPIC:inventory.reservation.denied.v1}
-          partitions: 1
-          replicas: 1
+          inventory-reservation-requested:
+            name: ${INVENTORY_RES_REQ_TOPIC:inventory.reservation.requested.v1}
+            partitions: 1
+            replicas: 1
+          order-created:
+            name: ${ORDER_CREATED_TOPIC:orders.created.v1}
+            partitions: 1
+            replicas: 1
+          payment-authorized:
+            name: ${PAYMENT_AUTHORIZED_TOPIC:payment.authorized.v1}
+            partitions: 1
+            replicas: 1
+          payment-denied:
+            name: ${PAYMENT_DENIED_TOPIC:payment.denied.v1}
+            partitions: 1
+            replicas: 1
+          inventory-reservation-confirmed:
+            name: ${INVENTORY_RES_CONFIRMED_TOPIC:inventory.reservation.confirmed.v1}
+            partitions: 1
+            replicas: 1
+          inventory-reservation-denied:
+            name: ${INVENTORY_RES_DENIED_TOPIC:inventory.reservation.denied.v1}
+            partitions: 1
+            replicas: 1
 
     # CONSUMER: eventos que o checkout consome (gateways/estoque)
     # EN: CONSUMER: events that checkout consumes (gateways/inventory)
     consumer:
-      topic-key: integration-events
+
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+
+      properties:
+          spring.json.trusted.packages: "*"
+
       topics:
-        payment-events:
-          name: ${PAYMENT_EVENTS_TOPIC:payment.events.v1}     # ex.: authorized/denied
-          # EN: e.g., authorized/denied
+        payment-authorized:
+          name: ${PAYMENT_AUTH_TOPIC:payment.authorized.v1}
           concurrency: 1
-        inventory-events:
-          name: ${INVENTORY_EVENTS_TOPIC:inventory.events.v1} # ex.: reserved/denied
-          # EN: e.g., reserved/denied
+        payment-denied:
+          name: ${PAYMENT_DENY_TOPIC:payment.denied.v1}
+          concurrency: 1
+        inventory-reserved:
+          name: ${INV_RESERVED_TOPIC:inventory.reserve.confirmed.v1}
+          concurrency: 1
+        inventory-denied:
+          name: ${INV_DENIED_TOPIC:inventory.reserve.denied.v1}
           concurrency: 1
 
 # Suporte ao TopicAdminConfig (auto-criar tópico via propriedade simples)

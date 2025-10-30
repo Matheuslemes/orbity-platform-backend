@@ -20,9 +20,10 @@ public class IdpEventsConsumer {
 
     @KafkaListener(
             id = "customer-idp-events",
-            topics = "${customer.kafka.consumer.topics.idp-events.name:idp.events.v1}",
+            topics = "${orbity.kafka.consumer.topics.idp-events.name:idp.events.v1}",
             groupId = "${spring.kafka.consumer.group-id:ms-customer}",
-            concurrency = "${customer.kafka.consumer.topics.idp-events.concurrency:1}"
+            concurrency = "${orbity.kafka.consumer.topics.idp-events.concurrency:1}",
+            containerFactory = "kafkaListenerContainerFactory"
     )
     public void onIdpEvent(ConsumerRecord<String, String> rec, Acknowledgment ack) {
 

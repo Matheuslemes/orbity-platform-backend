@@ -14,17 +14,21 @@ public class KafkaInventoryEventsConsumer {
 
     private final CheckoutSagaOrchestrator saga;
 
-    @KafkaListener(topics = "${catalog.kafka.consumer.topics.inventory-reserved.name:inventory.reserve.confirmed.v1}",
-            groupId = "${spring.kafka.consumer.group-id:ms-checkout}")
-    public void reserved(InventoryReservationConfirmedEvent evt){
+    @KafkaListener(
+            topics = "${orbity.kafka.consumer.topics.inventory-reserved.name}",
+            groupId = "${spring.kafka.consumer.group-id}"
+    )
+    public void reserved(InventoryReservationConfirmedEvent evt) {
 
         saga.handleInventoryReserved(evt);
 
     }
 
-    @KafkaListener(topics = "${catalog.kafka.consumer.topics.inventory-denied.name:inventory.reserve.denied.v1}",
-            groupId = "${spring.kafka.consumer.group-id:ms-checkout}")
-    public void denied(InventoryReservationDeniedEvent evt){
+    @KafkaListener(
+            topics = "${orbity.kafka.consumer.topics.inventory-denied.name}",
+            groupId = "${spring.kafka.consumer.group-id}"
+    )
+    public void denied(InventoryReservationDeniedEvent evt) {
 
         saga.handleInventoryDenied(evt);
 
