@@ -11,7 +11,7 @@ spring:
       port: ${REDIS_PORT:6379}
       # se tiver senha no Redis, exporte REDIS_PASSWORD
       # EN: if your Redis has a password, export REDIS_PASSWORD
-      password: ${REDIS_PASSWORD:}
+      password: ${REDIS_PASSWORD:orbity}
 
   cache:
     # opcional: se você habilitar um cache de totais/snapshots no CacheConfig

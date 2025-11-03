@@ -9,7 +9,7 @@ spring:
     mongodb:
       # Ex.: mongodb://mongo:27017/catalog (docker) | mongodb://localhost:27017/catalog (local)
       # EN: Example: mongodb://mongo:27017/catalog (docker) | mongodb://localhost:27017/catalog (local)
-      uri: ${MONGO_URI:mongodb://localhost:27017/catalog}
+      uri: ${MONGO_URI:mongodb://localhost:27017/catalogOrbity}
       auto-index-creation: true
       uuid-representation: standard
 

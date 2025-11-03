@@ -9,8 +9,8 @@ spring:
   # EN: If you choose to keep SAGA state in PostgreSQL, enable the datasource/JPA:
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/checkout}
-    username: ${DB_USER:checkout}
-    password: ${DB_PASS:checkout}
+    username: ${DB_USER:orbity}
+    password: ${DB_PASS:orbity}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:

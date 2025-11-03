@@ -8,7 +8,7 @@ spring:
   # MongoDB
   data:
     mongodb:
-      uri: ${MONGO_URI:mongodb://localhost:27017/media}
+      uri: ${MONGO_URI:mongodb://localhost:27017/mediaOrbity}
       auto-index-creation: true
       uuid-representation: standard
 
