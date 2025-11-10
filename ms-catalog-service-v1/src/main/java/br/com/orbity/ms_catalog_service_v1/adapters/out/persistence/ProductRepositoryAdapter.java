@@ -29,7 +29,7 @@ public class ProductRepositoryAdapter implements ProductRepositoryPortOut {
     @Override
     public Optional<Product> findById(UUID id) {
 
-        return mongo.findById(id.toString()).map(mapper::toProductDomain);
+        return mongo.findById(UUID.fromString(id.toString())).map(mapper::toProductDomain);
 
     }
 
@@ -57,9 +57,9 @@ public class ProductRepositoryAdapter implements ProductRepositoryPortOut {
     }
 
     @Override
-    public void delete(UUID id) {
+    public void deleteById(UUID id) {
 
-        mongo.deleteById(id.toString());
+        mongo.deleteById(UUID.fromString(id.toString()));
 
     }
 }

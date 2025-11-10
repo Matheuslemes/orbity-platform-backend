@@ -6,8 +6,10 @@ import br.com.orbity.ms_catalog_service_v1.domain.port.out.ProductEventPublisher
 import br.com.orbity.ms_catalog_service_v1.domain.port.out.ProductRepositoryPortOut;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 @Slf4j
+@Service
 @RequiredArgsConstructor
 public class CreateProductUseCaseImpl implements CreateProductCommand {
 

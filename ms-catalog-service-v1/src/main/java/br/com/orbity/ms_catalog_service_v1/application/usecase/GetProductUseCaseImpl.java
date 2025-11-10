@@ -5,12 +5,14 @@ import br.com.orbity.ms_catalog_service_v1.domain.port.in.GetProductQuery;
 import br.com.orbity.ms_catalog_service_v1.domain.port.out.ProductRepositoryPortOut;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
+@Service
 @RequiredArgsConstructor
 public class GetProductUseCaseImpl implements GetProductQuery {
 

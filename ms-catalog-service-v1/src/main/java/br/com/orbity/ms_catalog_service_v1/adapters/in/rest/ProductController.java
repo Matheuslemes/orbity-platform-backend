@@ -1,6 +1,7 @@
 package br.com.orbity.ms_catalog_service_v1.adapters.in.rest;
 
 import br.com.orbity.ms_catalog_service_v1.domain.port.in.CreateProductCommand;
+import br.com.orbity.ms_catalog_service_v1.domain.port.in.DeleteProductCommand;
 import br.com.orbity.ms_catalog_service_v1.domain.port.in.GetProductQuery;
 import br.com.orbity.ms_catalog_service_v1.domain.port.in.UpdateProductCommand;
 import br.com.orbity.ms_catalog_service_v1.dto.ProductDto;
@@ -33,6 +34,7 @@ public class ProductController {
     private final CreateProductCommand createProduct;
     private final UpdateProductCommand updateProduct;
     private final GetProductQuery getProduct;
+    private final DeleteProductCommand deleteProduct;
     private final ProductDtoMapper mapper;
 
     @Operation(
@@ -146,5 +148,30 @@ public class ProductController {
                 .orElse(ResponseEntity.notFound().build());
 
     }
+
+    @Operation(
+            summary = "Excluir produto por ID",
+            description = """
+            **HTTP**: `DELETE /api/v1/catalog/products/{id}`
+            **Path**: `id` (UUID do produto)
+            **Retorno**: `204 No Content` em sucesso; `404 Not Found` se o ID não existir
+            """,
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "Excluído com sucesso", content = @Content),
+                    @ApiResponse(responseCode = "401", description = "Não autenticado", content = @Content),
+                    @ApiResponse(responseCode = "403", description = "Sem permissão", content = @Content),
+                    @ApiResponse(responseCode = "404", description = "Não encontrado", content = @Content),
+                    @ApiResponse(responseCode = "409", description = "Conflito", content = @Content)
+            }
+    )
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(
+            @Parameter(description = "ID do produto (UUID)", required = true, example = "3fa85f64-5717-4562-b3fc-2c963f66afa6")
+            @PathVariable UUID id
+    ) {
+        deleteProduct.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
 
 }

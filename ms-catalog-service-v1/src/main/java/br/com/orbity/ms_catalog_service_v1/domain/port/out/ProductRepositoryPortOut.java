@@ -16,6 +16,6 @@ public interface ProductRepositoryPortOut {
 
     Product save (Product product);
 
-    void delete (UUID id);
+    void deleteById (UUID id);
 
 }

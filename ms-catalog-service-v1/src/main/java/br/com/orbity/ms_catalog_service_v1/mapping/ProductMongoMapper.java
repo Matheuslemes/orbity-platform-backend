@@ -27,7 +27,7 @@ public class ProductMongoMapper {
         if (e == null) return null;
 
         ProductDocument d = new ProductDocument();
-        d.setId(e.id() != null ? e.id().toString() : null);
+        d.setId(e.id() != null ? UUID.fromString(e.id().toString()) : null);
         d.setSku(e.sku());
         d.setName(e.name());
         d.setDescription(e.description());
@@ -72,7 +72,7 @@ public class ProductMongoMapper {
         }
 
         return Product.restore(
-                parseUuidSafe(d.getId()),
+                parseUuidSafe(String.valueOf(d.getId())),
                 d.getSku(),
                 d.getName(),
                 d.getDescription(),
