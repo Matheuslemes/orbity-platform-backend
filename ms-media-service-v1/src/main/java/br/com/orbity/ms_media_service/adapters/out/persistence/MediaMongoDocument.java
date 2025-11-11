@@ -1,62 +1,73 @@
 package br.com.orbity.ms_media_service.adapters.out.persistence;
 
-import org.springframework.data.annotation.Id;
+import lombok.*;
+import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.index.*;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
-@Document(collation = "media")
+@Getter @Setter
+@Builder
+@AllArgsConstructor @NoArgsConstructor
+@Document(collection = "media")
+@CompoundIndexes({
+        // Se continuar também preenchendo container/blobName, mantenha este índice.
+        @CompoundIndex(name = "uk_container_blob", def = "{'container': 1, 'blobName': 1}", unique = true)
+})
 public class MediaMongoDocument {
 
     @Id
-    private String id;
+    private UUID id;
+
+    @Indexed
     private String fileName;
+
     private String contentType;
+
     private Long size;
-    private String checksum;
+
+    @Indexed
+    private String checksumSha256;
+
+    /** CHAVE ÚNICA CANÔNICA: ex. azure://orbity-assets/path/file.png */
+    @Indexed(unique = true)
     private String storageKey;
+
+    @Indexed
+    private String storageProvider;
+
+    @Indexed
+    private String container;
+
+    @Indexed
+    private String blobName;
+
+    private Map<String, String> metadata;
+
+    @Indexed
+    private Set<String> tags;
+
+    @Indexed
+    private String visibility;
+
+    @Indexed
+    private String status;
+
+    @CreatedDate
+    @Indexed(direction = IndexDirection.DESCENDING)
     private OffsetDateTime createdAt;
 
-    public String getId() {
-        return id;
-    }
-    public void setId(String id) {
-        this.id = id;
-    }
-    public String getFileName() {
-        return fileName;
-    }
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-    public String getContentType() {
-        return contentType;
-    }
-    public void setContentType(String contentType) {
-        this.contentType = contentType;
-    }
-    public Long getSize() {
-        return size;
-    }
-    public void setSize(Long size) {
-        this.size = size;
-    }
-    public String getChecksum() {
-        return checksum;
-    }
-    public void setChecksum(String checksum) {
-        this.checksum = checksum;
-    }
-    public String getStorageKey() {
-        return storageKey;
-    }
-    public void setStorageKey(String storageKey) {
-        this.storageKey = storageKey;
-    }
-    public OffsetDateTime getCreatedAt() {
-        return createdAt;
-    }
-    public void setCreatedAt(OffsetDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
+    @CreatedBy
+    private String createdBy;
+
+    @LastModifiedDate
+    private OffsetDateTime updatedAt;
+
+    @Version
+    private Long version;
 }
