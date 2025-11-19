@@ -4,19 +4,24 @@ import br.com.orbity.ms_media_service.adapters.out.persistence.MediaMongoDocumen
 import br.com.orbity.ms_media_service.domain.model.MediaAsset;
 import org.springframework.stereotype.Component;
 
+import java.time.ZoneOffset;
+
 @Component
 public class MediaMongoMapper {
 
-    /** Domain -> Document */
     public MediaMongoDocument toDocument(MediaAsset a) {
         var d = new MediaMongoDocument();
         d.setId(a.getId());
         d.setFileName(a.getFilename());
         d.setContentType(a.getContentType());
-        d.setSize(a.getSize());                 // garantir preenchimento
-        d.setChecksumSha256(a.getChecksum());         // pode ser sha256 em hex
-        d.setStorageKey(a.getStorageKey());     // formato <provider>://<container>/<blob>
-        d.setCreatedAt(a.getCreatedAt());
+        d.setSize(a.getSize());
+        d.setChecksumSha256(a.getChecksum());
+        d.setStorageKey(a.getStorageKey());
+
+        if (a.getCreatedAt() != null) {
+            d.setCreatedAt(a.getCreatedAt().toInstant());   // 🔹 OffsetDateTime -> Instant
+        }
+
         return d;
     }
 
@@ -28,9 +33,9 @@ public class MediaMongoMapper {
                 d.getSize() == null ? 0L : d.getSize(),
                 d.getChecksumSha256(),
                 d.getStorageKey(),
-                d.getCreatedAt()
+                d.getCreatedAt() == null
+                        ? null
+                        : d.getCreatedAt().atOffset(ZoneOffset.UTC) // 🔹 Instant -> OffsetDateTime
         );
     }
 }
-
-

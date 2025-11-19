@@ -1,5 +1,6 @@
 package br.com.orbity.ms_media_service.adapters.in.rest;
 
+import br.com.orbity.ms_media_service.domain.port.in.DeleteMediaCommand;
 import br.com.orbity.ms_media_service.domain.port.in.GetMediaQuery;
 import br.com.orbity.ms_media_service.domain.port.in.UploadMediaCommand;
 import br.com.orbity.ms_media_service.dto.MediaDto;
@@ -32,6 +33,7 @@ public class MediaController {
     private final UploadMediaCommand uploadMedia;
     private final GetMediaQuery getMedia;
     private final MediaDtoMapper mapper;
+    private final DeleteMediaCommand deleteMedia;
 
     // upload
     @Operation(
@@ -126,6 +128,32 @@ public class MediaController {
                 .map(u -> ResponseEntity.ok(new PresignedUrlResponse(u)))
                 .orElse(ResponseEntity.notFound().build());
 
+    }
+
+    @Operation(
+            summary = "Deletar mídia",
+            description = """
+                    **HTTP**: `DELETE /api/v1/media/{id}`
+                    **Retorno**:
+                    - 204 No Content se deletado com sucesso
+                    - 404 Not Found se não existir mídia com esse ID
+                    """,
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "Deletado com sucesso"),
+                    @ApiResponse(responseCode = "404", description = "Não encontrado", content = @Content)
+            }
+    )
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(
+            @Parameter(description = "ID do asset (UUID)", required = true)
+            @PathVariable UUID id
+    ) {
+
+        boolean deleted = deleteMedia.delete(id);
+        if (!deleted) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.noContent().build();
     }
 
 

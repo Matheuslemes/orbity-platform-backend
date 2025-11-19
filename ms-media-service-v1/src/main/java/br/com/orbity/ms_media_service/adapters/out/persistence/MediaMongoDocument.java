@@ -2,11 +2,11 @@ package br.com.orbity.ms_media_service.adapters.out.persistence;
 
 import lombok.*;
 import org.springframework.data.annotation.*;
+import org.springframework.data.mongodb.core.index.IndexDirection;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.index.*;
 
 import java.time.Instant;
-import java.time.OffsetDateTime;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -15,10 +15,6 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor @NoArgsConstructor
 @Document(collection = "media")
-@CompoundIndexes({
-        // Se continuar também preenchendo container/blobName, mantenha este índice.
-        @CompoundIndex(name = "uk_container_blob", def = "{'container': 1, 'blobName': 1}", unique = true)
-})
 public class MediaMongoDocument {
 
     @Id
@@ -34,7 +30,6 @@ public class MediaMongoDocument {
     @Indexed
     private String checksumSha256;
 
-    /** CHAVE ÚNICA CANÔNICA: ex. azure://orbity-assets/path/file.png */
     @Indexed(unique = true)
     private String storageKey;
 
@@ -60,13 +55,13 @@ public class MediaMongoDocument {
 
     @CreatedDate
     @Indexed(direction = IndexDirection.DESCENDING)
-    private OffsetDateTime createdAt;
+    private Instant createdAt;
 
     @CreatedBy
     private String createdBy;
 
     @LastModifiedDate
-    private OffsetDateTime updatedAt;
+    private Instant updatedAt;
 
     @Version
     private Long version;

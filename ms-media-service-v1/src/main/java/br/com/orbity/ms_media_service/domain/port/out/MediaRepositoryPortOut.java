@@ -11,4 +11,6 @@ public interface MediaRepositoryPortOut {
 
     Optional<MediaAsset> findById(UUID id);
 
+    void deleteById(UUID id);
+
 }

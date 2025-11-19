@@ -46,4 +46,14 @@ public class MediaRepositoryAdapter implements MediaRepositoryPortOut {
         return repository.findById(id)
                 .map(mapper::toDomain);
     }
+
+    @Override
+    public void deleteById(UUID id) {
+        if (id == null) {
+            throw new IllegalArgumentException("id não pode ser nulo");
+        }
+
+        log.info("[MediaRepositoryAdapter] - [deleteById] IN -> id={}", id);
+        repository.deleteById(id);
+    }
 }
